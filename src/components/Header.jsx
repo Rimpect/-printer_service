@@ -1,26 +1,37 @@
-// src/components/Header.jsx
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPrint, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 
-const Header = () => {
-  const { user, logout } = useAuth();
+export function Header({ user, onLogout }) {
+  const getUserRole = () => {
+    switch(user.role) {
+      case 'user': return 'Пользователь';
+      case 'service': return 'Сервисный центр';
+      case 'admin': return 'Администратор';
+      default: return '';
+    }
+  };
 
   return (
-    <header>
-      <nav>
-        <Link to="/">Главная</Link>
-        {user?.role === 'admin' && <Link to="/admin">Админ</Link>}
-        {user?.role === 'deanery' && <Link to="/deanery">Деканат</Link>}
-        {user?.role === 'service' && <Link to="/service">Сервис</Link>}
-        {user ? (
-          <button onClick={logout}>Выйти</button>
-        ) : (
-          <Link to="/login">Войти</Link>
-        )}
-      </nav>
+    <header className="bg-gray-800 text-white p-4 flex justify-between items-center shadow-md">
+      <div className="flex items-center gap-2">
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+          <FontAwesomeIcon icon={faPrint} className="text-blue-400" />
+          Учёт принтеров
+        </h1>
+      </div>
+      <div className="flex items-center gap-4">
+        <div className="text-right">
+          <div className="font-medium">{user.fullName}</div>
+          <div className="text-sm text-gray-300">{getUserRole()}</div>
+        </div>
+        <button 
+          onClick={onLogout}
+          className="border border-gray-300 px-4 py-2 rounded flex items-center gap-2 hover:bg-gray-700 transition-colors"
+        >
+          <FontAwesomeIcon icon={faSignOutAlt} />
+          Выйти
+        </button>
+      </div>
     </header>
   );
-};
-
-export default Header;
+}
