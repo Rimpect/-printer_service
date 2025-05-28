@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faPlusCircle, faHistory
+  faPlusCircle, faHistory, faTools, 
+  faPrint, faExclamationTriangle, 
+  faPaperPlane, faListUl, faInbox 
 } from '@fortawesome/free-solid-svg-icons';
 import { NewRequest } from './NewRequest';
 import { MyRequests } from './MyRequests';
-
-export function UserDashboard({ printers, onRequestSubmit, userRequests }) {
+export function ServiceDashboard({ printers, onRequestSubmit, userRequests }) {
   const [selectedPrinter, setSelectedPrinter] = useState('');
   const [problemDescription, setProblemDescription] = useState('');
   const [activeTab, setActiveTab] = useState('newRequest');
@@ -27,18 +28,17 @@ export function UserDashboard({ printers, onRequestSubmit, userRequests }) {
           onClick={() => setActiveTab('newRequest')}
         >
           <FontAwesomeIcon icon={faPlusCircle} />
-          Новая заявка
+          Принятые заявки
         </button>
         <button 
           className={`px-4 py-2 font-medium flex items-center gap-2 ${activeTab === 'myRequests' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600'}`}
           onClick={() => setActiveTab('myRequests')}
         >
           <FontAwesomeIcon icon={faHistory} />
-          Мои заявки ({userRequests.length})
+          Заявки пользователей ({userRequests.length})
         </button>
       </div>
-
-      {activeTab === 'newRequest' && (
+    {activeTab === 'newRequest' && (
         <NewRequest
           printers={printers}
           selectedPrinter={selectedPrinter}
