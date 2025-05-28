@@ -3,6 +3,8 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { LoginPage } from './components/LoginPage';
 import { UserDashboard } from './components/UserDashboard';
+import { ServiceDashboard } from './components/ServiceDashboard';
+import { AdminDashboard } from './components/AdminDashboard';
 import { mockUsers, mockPrinters, mockRequests } from './data/mockData';
 
 function App() {
@@ -56,6 +58,20 @@ function App() {
       <main className="flex-1 container mx-auto px-4 py-8">
         {view === 'user' && (
           <UserDashboard 
+            printers={printers} 
+            onRequestSubmit={handleRequestSubmit} 
+            userRequests={requests.filter(r => r.userId === user.id)} 
+          />
+        )}
+        {view === 'service' && (
+          <ServiceDashboard 
+            printers={printers} 
+            onRequestSubmit={handleRequestSubmit} 
+            userRequests={requests.filter(r => r.userId === user.id)} 
+          />
+        )}
+        {view === 'admin' && (
+          <AdminDashboard 
             printers={printers} 
             onRequestSubmit={handleRequestSubmit} 
             userRequests={requests.filter(r => r.userId === user.id)} 
