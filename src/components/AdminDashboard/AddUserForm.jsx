@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSignInAlt, faUser, faLock, faPhone, faEnvelope, faUsersLine, faBriefcase, faUsers } from '@fortawesome/free-solid-svg-icons';
+import { faSignInAlt, faUser, faLock, faPhone, faEnvelope, faUsersLine, faBriefcase, faUsers, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 export function AddUserForm({ onRegister }) {
   const [name, setName] = useState('');
@@ -14,9 +14,20 @@ export function AddUserForm({ onRegister }) {
   const [placeOfWork, setPlaceOfWork] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onRegister(name, password);
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
   };
 
   return (
@@ -150,37 +161,54 @@ export function AddUserForm({ onRegister }) {
             />
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-              <FontAwesomeIcon icon={faLock} />
-              Пароль
-            </label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
         <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-              <FontAwesomeIcon icon={faLock} />
-              Подтвердите  пароль
-            </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-             {/* {errors.confirmPassword && (
-          <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
-        )} */}
-          </div>
+        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+          <FontAwesomeIcon icon={faLock} />
+          Пароль
+        </label>
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            required
+          />
+          <button
+            type="button"
+            onClick={togglePasswordVisibility}
+            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 hover:text-gray-800"
+          >
+            <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+          <FontAwesomeIcon icon={faLock} />
+          Подтвердите пароль
+        </label>
+        <div className="relative">
+          <input
+            type={showConfirmPassword ? "text" : "password"}
+            id="confirmPassword"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            required
+          />
+          <button
+            type="button"
+            onClick={toggleConfirmPasswordVisibility}
+            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 hover:text-gray-800"
+          >
+            <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
+          </button>
+        </div>
+      </div>
+
 
           <button
             type="submit"
