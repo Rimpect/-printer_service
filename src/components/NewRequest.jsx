@@ -1,17 +1,44 @@
+import React, { useState,useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { fetchPrinters, createServiceRequest } from '../api/api';
 import { 
   faTools, faPrint, 
   faExclamationTriangle, faPaperPlane 
 } from '@fortawesome/free-solid-svg-icons';
+export function NewRequest() {
+  const [printers, setPrinters] = useState([]);
+  const [selectedPrinter, setSelectedPrinter] = useState('');
+  const [problemDescription, setProblemDescription] = useState('');
 
-export function NewRequest({ 
-  printers, 
-  selectedPrinter, 
-  setSelectedPrinter, 
-  problemDescription, 
-  setProblemDescription, 
-  handleSubmit 
-}) {
+  // Загрузка принтеров при монтировании компонента
+  useEffect(() => {
+    const loadPrinters = async () => {
+      try {
+        const data = await fetchPrinters();
+        setPrinters(data);
+      } catch (error) {
+        console.error('Error loading printers:', error);
+      }
+    };
+    loadPrinters();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await createServiceRequest({
+        printer_id: selectedPrinter,
+        problem_description: problemDescription
+      });
+      alert('Заявка успешно создана!');
+      // Сброс формы
+      setSelectedPrinter('');
+      setProblemDescription('');
+    } catch (error) {
+      console.error('Error creating request:', error);
+      alert('Ошибка при создании заявки');
+    }
+  }; 
   return (
     <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
       <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
@@ -22,7 +49,7 @@ export function NewRequest({
       <div className="mb-6">
       <label htmlFor="printerSelect" className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
         <FontAwesomeIcon icon={faPrint} />
-        Выберите заявку которую хотите закрыть
+        Выберите принтер
       </label>
       <select
         id="printerSelect"
@@ -31,7 +58,7 @@ export function NewRequest({
         className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
         required
       >
-        <option value="">-- Выберите заявку --</option>
+        <option value="">-- Выберите принтер --</option>
         {printers.map(printer => (
           <option 
             key={printer.id} 
