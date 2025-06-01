@@ -91,22 +91,24 @@ export function AdminDashboard({
   };
 
   return (
-    <div className="user-dashboard">
-      <div className="flex gap-4 mb-6 border-b border-gray-200 overflow-x-auto">
+    <div className="user-dashboard p-2 sm:p-4">
+      {/* Адаптивная панель вкладок */}
+      <div className="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-4 mb-4 sm:mb-6 border-b border-gray-200 overflow-x-auto pb-1">
         {tabs.map(tab => (
           <button
             key={tab.id}
-            className={`px-4 py-2 font-medium flex items-center gap-2 whitespace-nowrap ${
+            className={`px-3 py-1 sm:px-4 sm:py-2 text-sm sm:text-base font-medium flex items-center gap-1 sm:gap-2 whitespace-nowrap flex-shrink-0 ${
               activeTab === tab.id 
                 ? 'text-blue-600 border-b-2 border-blue-600' 
-                : 'text-gray-600'
+                : 'text-gray-600 hover:text-gray-800'
             }`}
             onClick={() => setActiveTab(tab.id)}
           >
-            <FontAwesomeIcon icon={tab.icon} />
-            {tab.label}
+            <FontAwesomeIcon icon={tab.icon} className="text-xs sm:text-sm" />
+            <span className="hidden sm:inline">{tab.label}</span>
+            <span className="sm:hidden">{tab.shortLabel || tab.label}</span>
             {tab.badge !== null && (
-              <span className="bg-gray-200 text-gray-800 text-xs font-semibold px-2 py-1 rounded-full">
+              <span className="bg-gray-200 text-gray-800 text-xs font-semibold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full">
                 {tab.badge}
               </span>
             )}
@@ -114,7 +116,10 @@ export function AdminDashboard({
         ))}
       </div>
 
-      {renderTabContent()}
+      {/* Адаптивный контент */}
+      <div className="p-1 sm:p-0">
+        {renderTabContent()}
+      </div>
     </div>
   );
 }
