@@ -5,7 +5,7 @@ import { LoginPage } from './components/LoginPage';
 import { UserDashboard } from './components/UserDashboard';
 import { ServiceDashboard } from './components/ServiceDashboard';
 import { AdminDashboard } from './components/AdminDashboard';
-import { BanUser } from './components/AdminDashboard/BanUser'; // Импортируем компонент бана
+import { BanUser } from './components/AdminDashboard/BanUser'; 
 import { mockUsers, mockPrinters, mockRequests } from './data/mockData';
 
 function App() {

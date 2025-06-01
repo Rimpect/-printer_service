@@ -7,7 +7,9 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { NewRequest } from './NewRequest';
 import { MyRequests } from './MyRequests';
-export function ServiceDashboard({ printers, onRequestSubmit, userRequests }) {
+import { RepairRequest } from './ServiceDashboard/RepairRequest';
+import { UsersRequest } from './ServiceDashboard/UsersRequest';
+export function ServiceDashboard({ printers = [], onRequestSubmit = () => {}, userRequests = [] }) {
   const [selectedPrinter, setSelectedPrinter] = useState('');
   const [problemDescription, setProblemDescription] = useState('');
   const [activeTab, setActiveTab] = useState('newRequest');
@@ -17,8 +19,12 @@ export function ServiceDashboard({ printers, onRequestSubmit, userRequests }) {
     onRequestSubmit(selectedPrinter, problemDescription);
     setSelectedPrinter('');
     setProblemDescription('');
-    setActiveTab('myRequests');
+    setActiveTab('UsersRequest');
   };
+
+  // Добавляем безопасные значения по умолчанию
+  const safeUserRequests = Array.isArray(userRequests) ? userRequests : [];
+  const safePrinters = Array.isArray(printers) ? printers : [];
 
   return (
     <div className="user-dashboard">
@@ -35,12 +41,13 @@ export function ServiceDashboard({ printers, onRequestSubmit, userRequests }) {
           onClick={() => setActiveTab('myRequests')}
         >
           <FontAwesomeIcon icon={faHistory} />
-          Заявки пользователей ({userRequests.length})
+          Заявки пользователей ({safeUserRequests.length})
         </button>
       </div>
-    {activeTab === 'newRequest' && (
-        <NewRequest
-          printers={printers}
+
+      {activeTab === 'newRequest' && (
+        <RepairRequest
+          printers={safePrinters}
           selectedPrinter={selectedPrinter}
           setSelectedPrinter={setSelectedPrinter}
           problemDescription={problemDescription}
@@ -50,8 +57,8 @@ export function ServiceDashboard({ printers, onRequestSubmit, userRequests }) {
       )}
 
       {activeTab === 'myRequests' && (
-       <MyRequests 
-          userRequests={userRequests}
+        <UsersRequest 
+          userRequests={safeUserRequests}
         />
       )}
     </div>
