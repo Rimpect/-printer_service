@@ -1,24 +1,14 @@
 const { query } = require('../config/database');
 
-// backend/src/services/serviceRequest.service.js
 class ServiceRequestService {
-  static async getAllRequests() {
-    const { rows } = await pool.query(`
-      SELECT 
-        sr.id,
-        sr.printer_id,
-        sr.problem_description,
-        sr.status,
-        sr.created_at,
-        p.model as printer_model,
-        p.location as printer_location
-      FROM service_requests sr
-      JOIN printers p ON sr.printer_id = p.id
-      ORDER BY sr.created_at DESC
-    `);
-    return rows;
+   static async create(printerId, problemDescription) {
+    const { rows } = await query(
+      'INSERT INTO service_requests (printer_id, problem_description) VALUES ($1, $2) RETURNING *',
+      [printerId, problemDescription]
+    );
+    return rows[0];
+  
   }
-
 
   static async closeRequest(requestId) {
     const { rows } = await query(
