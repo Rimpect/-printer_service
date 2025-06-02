@@ -19,27 +19,28 @@ function App() {
   
 
   useEffect(() => {
-        const fetchData = async () => {
+        const fetchUser = async () => {
             try {
-                // Параллельная загрузка данных
-                const [printers, users, requests] = await Promise.all([
-                    fetch('/backend/dataBase/printers'),
-                    fetch('/backend/dataBase/users'),
-                    fetch('/backend/dataBase/requests')
-                ]);
                 
-                setPrinters(await printers.json());
-                setUsers(await users.json());
-                setRequests(await requests.json());
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+                const responseUser = await fetch('/backend/src/users')          
+                const data = await responseUser.json();
+                setUsers(data);
 
-        fetchData();
-    }, []);
+              //setPrinters(await printers.json());
+                //setUsers(await users.json());
+                //setRequests(await requests.json());
+
+
+
+                } catch (error) {
+                  console.error('Error:', error);
+                } finally {
+                  setLoading(false);
+                }
+              };
+
+              fetchUser();
+            }, []);
 
   const handleLogin = (username, password) => {
     const foundUser = users.find(u => 

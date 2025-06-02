@@ -6,27 +6,13 @@ export function LoginPage({ onLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     onLogin(username, password);
-
-    aythForm;
-  };
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
-  const toggleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword(!showConfirmPassword);
-  };
-
-  const aythForm = async (e) => {
-    e.preventDefault();
     setError('');
 
     try {
-      const response = await fetch('/backend/auth/login', {
+      const response = await fetch('/backend/src/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -48,7 +34,17 @@ export function LoginPage({ onLogin }) {
       setError('Ошибка соединения');
       console.error('Login error:', err);
     }
+    
   };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
   
 
   return (
