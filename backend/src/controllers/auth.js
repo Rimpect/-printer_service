@@ -1,10 +1,9 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const pool = require('../config/database');
-require('dotenv').config();
+import pool from '../config/database.js';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
-module.exports = {
-  login: async (req, res) => {
+
+  export const login = async (req, res) => {
     try {
       const { username, password } = req.body;
       const user = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
@@ -21,9 +20,9 @@ module.exports = {
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
-  },
+  };
 
-  refreshToken: async (req, res) => {
+  export const refreshToken = async (req, res) => {
     try {
       const { refreshToken } = req.body;
       if (!refreshToken) return res.status(400).json({ error: 'Refresh token required' });
@@ -35,5 +34,4 @@ module.exports = {
     } catch (err) {
       res.status(401).json({ error: 'Invalid refresh token' });
     }
-  }
-};
+  };

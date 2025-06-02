@@ -1,6 +1,6 @@
-const { verifyAccessToken } = require('../config/jwt');
+import { verifyAccessToken } from '../config/jwt.js';
 
-module.exports = (req, res, next) => {
+const authMiddleWare = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(403).json({ error: 'Token required' });
 
@@ -12,3 +12,5 @@ module.exports = (req, res, next) => {
     res.status(401).json({ error: 'Invalid token' });
   }
 };
+
+export default authMiddleWare;

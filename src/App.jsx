@@ -6,7 +6,7 @@ import { UserDashboard } from './components/UserDashboard';
 import { ServiceDashboard } from './components/ServiceDashboard';
 import { AdminDashboard } from './components/AdminDashboard';
 import { BanUser } from './components/AdminDashboard/BanUser'; // Импортируем компонент бана
-import { mockUsers, mockPrinters, mockRequests } from './data/mockData';
+
 
 function App() {
   const [user, setUser] = useState(null);
@@ -16,12 +16,30 @@ function App() {
   const [users, setUsers] = useState([]);
   const [bannedUsers, setBannedUsers] = useState([]); // Состояние для заблокированных пользователей
   const [adminView, setAdminView] = useState('main'); // Для переключения между разделами админки
+  
 
   useEffect(() => {
-    setPrinters(mockPrinters);
-    setUsers(mockUsers);
-    setRequests(mockRequests);
-  }, []);
+        const fetchData = async () => {
+            try {
+                // Параллельная загрузка данных
+                const [printers, users, requests] = await Promise.all([
+                    fetch('/backend/dataBase/printers'),
+                    fetch('/backend/dataBase/users'),
+                    fetch('/backend/dataBase/requests')
+                ]);
+                
+                setPrinters(await printers.json());
+                setUsers(await users.json());
+                setRequests(await requests.json());
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
 
   const handleLogin = (username, password) => {
     const foundUser = users.find(u => 

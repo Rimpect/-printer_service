@@ -1,8 +1,10 @@
-const express = require('express');
-const router = express.Router();
-const authController = require('../controllers/auth');
+import { Router } from 'express';
+import { login, refreshToken } from '../controllers/auth.js';
 
-router.post('/login', authController.login);
-router.post('/refresh-token', authController.refreshToken);  // Теперь метод существует!
+const router = Router();
 
-module.exports = router;
+router.post('/login', login);
+router.post('/refresh-token', refreshToken);  // Теперь метод существует!
+
+
+export default router;

@@ -9,6 +9,8 @@ export function LoginPage({ onLogin }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     onLogin(username, password);
+
+    aythForm;
   };
 
   const togglePasswordVisibility = () => {
@@ -18,6 +20,36 @@ export function LoginPage({ onLogin }) {
   const toggleConfirmPasswordVisibility = () => {
     setShowConfirmPassword(!showConfirmPassword);
   };
+
+  const aythForm = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    try {
+      const response = await fetch('/backend/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ login, password })
+      });
+
+      console.log('Полный ответ:', response);
+      const data = await response.json();
+      console.log('Данные ответа:', data);
+      if (data.status === 'success') {
+        localStorage.setItem('token', data.token);
+        console.log('Токен сохранен:', data.token); 
+        onLoginSuccess(data.user);
+        navigate('/profile');
+      } else {
+        setError(data.message || 'Ошибка авторизации');
+      }
+    } catch (err) {
+      setError('Ошибка соединения');
+      console.error('Login error:', err);
+    }
+  };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
