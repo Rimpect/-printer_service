@@ -5,8 +5,7 @@ const ServiceRequestService = require('../services/serviceRequest.service');
 // Получение заявок пользователя
 router.get('/', async (req, res) => {
   try {
-    const { userId } = req.query;
-    const requests = await ServiceRequestService.getUserRequests(userId);
+    const requests = await ServiceRequestService.getRequests(printerId = null, problemDescription = null);
     res.json(requests);
   } catch (error) {
     console.error(error);

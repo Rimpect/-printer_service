@@ -9,6 +9,21 @@ class ServiceRequestService {
     return rows[0];
   
   }
+ static async getRequests() {
+    const queryText = `
+        SELECT 
+        id,  // Добавляем id для ключей
+        printer_id AS "printerId",
+        problem_description AS "problemDescription",
+        created_at AS "createdAt",
+        status
+        FROM service_requests
+        ORDER BY created_at DESC
+    `;
+    
+    const { rows } = await query(queryText);
+    return rows;
+    }
 
   static async closeRequest(requestId) {
     const { rows } = await query(

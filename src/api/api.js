@@ -25,8 +25,7 @@ export const createServiceRequest = async (requestData) => {
 // Получение всех заявок (если нужно)
 export const getAllRequests = async () => {
    try {
-    console.log('Запрос к:', `${API_BASE_URL}/api/service-requests`);
-    const response = await fetch(`${API_BASE_URL}/api/service-requests`);
+    const response = await fetch(`${API_BASE_URL}/service-requests`);
     
     if (!response.ok) {
       const errorData = await response.json();
@@ -36,7 +35,7 @@ export const getAllRequests = async () => {
 
     return await response.json();
   } catch (error) {
-    console.error('Ошибка запроса:', error);
+    // console.error('Ошибка запроса:', error);
     throw error;
   }
 };
