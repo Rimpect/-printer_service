@@ -32,7 +32,7 @@ export function MyRequests() {
     };
     loadRequests();
   }, []);
-
+console.log("Первая заявка:", requests[0]);
   // Функция для преобразования статуса
   const getStatusDisplay = (status) => {
     if (!status) return { text: 'Новый', icon: faClock, class: 'bg-gray-100' };
@@ -95,26 +95,30 @@ export function MyRequests() {
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
               </tr>
-            </thead>
+         </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {requests.map((request, index) => {
                 const status = getStatusDisplay(request['Статус']);
                 return (
                   <tr key={index} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {request['Модель принтера'] || 'Неизвестный принтер'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(request['Дата начала']).toLocaleString('ru-RU')}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900 max-w-xs">
-                      {request['Комментарий']}
-                    </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {request.printerModel || 'Неизвестная модель'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {request.createdAt 
+                      ? new Date(request.createdAt).toLocaleString('ru-RU') 
+                      : request['Дата начала'] 
+                      ? new Date(request['Дата начала']).toLocaleString('ru-RU')
+                      : 'Нет данных'}
+                  </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                        {request.problemDescription || request['Комментарий'] || 'Нет описания'}
+                      </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 w-fit ${status.class}`}>
-                        <FontAwesomeIcon icon={status.icon} />
-                        {status.text}
+                    <span className={`status-${request.status}`}>
+                        {request.status === 'closed' ? '✅ Выполнено' : 
+                        request.status === 'in_progress' ? '🔄 В работе' : '🟡 Открыта'}
                       </span>
                     </td>
                   </tr>

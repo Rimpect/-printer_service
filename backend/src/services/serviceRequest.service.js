@@ -9,21 +9,23 @@ class ServiceRequestService {
     return rows[0];
   
   }
- static async getRequests() {
-    const queryText = `
-        SELECT 
-        id,  // Добавляем id для ключей
-        printer_id AS "printerId",
-        problem_description AS "problemDescription",
-        created_at AS "createdAt",
-        status
-        FROM service_requests
-        ORDER BY created_at DESC
-    `;
-    
-    const { rows } = await query(queryText);
-    return rows;
-    }
+// В ServiceRequestService.getRequests()
+static async getRequests() {
+  const queryText = `
+SELECT 
+      sr.id,
+      p.model AS "printerModel",  
+      sr.printer_id AS "printerId",
+      sr.problem_description AS "problemDescription",
+      sr.created_at AS "createdAt",
+      sr.status
+    FROM service_requests sr
+    LEFT JOIN printers p ON sr.printer_id = p.id  
+  `;
+  
+  const { rows } = await query(queryText);
+  return rows;
+}
 
   static async closeRequest(requestId) {
     const { rows } = await query(

@@ -7,6 +7,7 @@ router.get('/', async (req, res) => {
   try {
     const requests = await ServiceRequestService.getRequests(printerId = null, problemDescription = null);
     res.json(requests);
+    
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to fetch requests' });

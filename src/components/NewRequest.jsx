@@ -16,7 +16,7 @@ export function NewRequest() {
     const loadPrinters = async () => {
       try {
         const data = await fetchPrinters();
-        setPrinters(data);
+    setPrinters(data);
       } catch (error) {
         console.error('Error loading printers:', error);
       }
