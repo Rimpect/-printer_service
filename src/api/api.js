@@ -71,28 +71,32 @@ const refreshToken = async () => {
 // Добавляем в ваш API-модуль (где находятся Login, logout и другие функции)
 export const registerUser = async (userData) => {
   try {
+    console.log(
+      "Отправка данных регистрации:",
+      JSON.stringify(userData, null, 2)
+    );
+
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Accept: "application/json",
       },
       body: JSON.stringify(userData),
     });
 
-    const data = await response.json(); // Всегда пытаемся получить JSON
+    const data = await response.json();
 
     if (!response.ok) {
-      // Если сервер вернул сообщение об ошибке - используем его
-      throw new Error(data.message || `Ошибка регистрации: ${response.status}`);
+      console.error("Ошибка сервера:", data);
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
     }
 
+    console.log("Успешная регистрация:", data);
     return data;
   } catch (error) {
-    console.error("Registration error details:", {
-      error: error.message,
-      response: error.response,
-    });
-    throw error; // Пробрасываем оригинальную ошибку
+    console.error("Полная ошибка регистрации:", error);
+    throw error;
   }
 };
 export const checkAvailability = async ({ login, email }) => {

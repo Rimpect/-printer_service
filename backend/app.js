@@ -9,9 +9,11 @@ const app = express();
 // Middleware
 app.use(cors());
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || "http://localhost:5173", // Укажите адрес вашего фронта
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Добавили OPTIONS
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  credentials: true, // Если используете куки/сессии
+  optionsSuccessStatus: 200, // Для старых браузеров
 };
 
 app.use(cors(corsOptions));

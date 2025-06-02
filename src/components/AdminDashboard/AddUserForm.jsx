@@ -13,6 +13,7 @@ import {
   faCheckCircle,
   faTimesCircle,
   faSpinner,
+  faExclamationCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { registerUser, checkAvailability } from "../../api/api";
 
@@ -31,6 +32,14 @@ export function AddUserForm({ onRegister }) {
     confirmPassword: "",
   });
 
+  const [passwordRequirements, setPasswordRequirements] = useState({
+    length: false,
+    upperCase: false,
+    lowerCase: false,
+    number: false,
+    specialChar: false,
+  });
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [availability, setAvailability] = useState({
@@ -38,46 +47,103 @@ export function AddUserForm({ onRegister }) {
     email: { available: null, checking: false },
   });
   const [formErrors, setFormErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const validatePassword = (password) => {
+    const requirements = {
+      length: password.length >= 8,
+      upperCase: /[A-Z]/.test(password),
+      lowerCase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      specialChar: /[!@#$%^&*(),.?":{}|<>_]/.test(password),
+    };
+    setPasswordRequirements(requirements);
+    return Object.values(requirements).every(Boolean);
+  };
+
+  const validateForm = () => {
+    const errors = {};
+
+    // Required fields validation
+    if (!formData.name.trim()) errors.name = "Имя обязательно";
+    if (!formData.surname.trim()) errors.surname = "Фамилия обязательна";
+    if (!formData.login.trim()) errors.login = "Логин обязателен";
+    if (!formData.email.trim()) errors.email = "Email обязателен";
+    if (!formData.role) errors.role = "Роль обязательна";
+    if (!formData.password) errors.password = "Пароль обязателен";
+    if (!formData.confirmPassword)
+      errors.confirmPassword = "Подтверждение пароля обязательно";
+
+    // Password validation
+    if (formData.password && !validatePassword(formData.password)) {
+      errors.password = "Пароль не соответствует требованиям";
+    }
+
+    // Password match validation
+    if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = "Пароли не совпадают";
+    }
+
+    // Login length validation
+    if (formData.login.length > 0 && formData.login.length < 3) {
+      errors.login = "Логин должен содержать минимум 3 символа";
+    }
+
+    // Email format validation
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = "Некорректный формат email";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleChange = (e) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
 
-    // Очищаем ошибку при изменении поля
+    // Clear error when field changes
     if (formErrors[id]) {
       setFormErrors((prev) => ({ ...prev, [id]: "" }));
+    }
+
+    // Validate password in real-time
+    if (id === "password") {
+      validatePassword(value);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+
+    if (!validateForm()) {
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
-      // 1. Сначала проверяем доступность логина/email
-      const availability = await checkAvailability({
+      // Check availability
+      const availabilityCheck = await checkAvailability({
         login: formData.login,
         email: formData.email,
       });
 
-      // 2. Проверяем результаты availability
-      if (!availability.loginAvailable || !availability.emailAvailable) {
-        const errors = {};
-        if (!availability.loginAvailable) errors.login = "Логин уже занят";
-        if (!availability.emailAvailable) errors.email = "Email уже занят";
+      const errors = {};
+      if (!availabilityCheck.loginAvailable) errors.login = "Логин уже занят";
+      if (!availabilityCheck.emailAvailable) errors.email = "Email уже занят";
+
+      if (Object.keys(errors).length > 0) {
         setFormErrors(errors);
+        setIsSubmitting(false);
         return;
       }
 
-      // 3. Если проверка пройдена, регистрируем пользователя
-      const user = await registerUser({
-        ...formData,
-        confirmPassword: undefined, // Удаляем confirmPassword из данных
-      });
-
-      // 4. Обработка успешной регистрации
+      // Register user
+      const user = await registerUser(formData);
       if (onRegister) onRegister(user);
 
-      // 5. Сброс формы
+      // Reset form
       setFormData({
         name: "",
         surname: "",
@@ -91,77 +157,81 @@ export function AddUserForm({ onRegister }) {
         password: "",
         confirmPassword: "",
       });
+      setFormErrors({});
     } catch (error) {
-      console.error("Registration error:", error);
-      setFormErrors({ form: error.message });
+      setFormErrors({
+        form: error.message || "Произошла ошибка при регистрации",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Проверка доступности логина
-  // useEffect(() => {
-  //   if (formData.login.length < 3) {
-  //     setAvailability((prev) => ({
-  //       ...prev,
-  //       login: { available: null, checking: false },
-  //     }));
-  //     return;
-  //   }
+  // Check login availability
+  useEffect(() => {
+    if (formData.login.length < 3) {
+      setAvailability((prev) => ({
+        ...prev,
+        login: { available: null, checking: false },
+      }));
+      return;
+    }
 
-  //   const timer = setTimeout(async () => {
-  //     setAvailability((prev) => ({
-  //       ...prev,
-  //       login: { ...prev.login, checking: true },
-  //     }));
-  //     try {
-  //       const response = await checkAvailability({ login: formData.login });
-  //       setAvailability((prev) => ({
-  //         ...prev,
-  //         login: { available: response.loginAvailable, checking: false },
-  //       }));
-  //     } catch (error) {
-  //       console.error("Login check error:", error);
-  //       setAvailability((prev) => ({
-  //         ...prev,
-  //         login: { available: null, checking: false },
-  //       }));
-  //     }
-  //   }, 500);
+    const timer = setTimeout(async () => {
+      setAvailability((prev) => ({
+        ...prev,
+        login: { ...prev.login, checking: true },
+      }));
+      try {
+        const response = await checkAvailability({ login: formData.login });
+        setAvailability((prev) => ({
+          ...prev,
+          login: { available: response.loginAvailable, checking: false },
+        }));
+      } catch (error) {
+        console.error("Login check error:", error);
+        setAvailability((prev) => ({
+          ...prev,
+          login: { available: null, checking: false },
+        }));
+      }
+    }, 500);
 
-  //   return () => clearTimeout(timer);
-  // }, [formData.login]);
+    return () => clearTimeout(timer);
+  }, [formData.login]);
 
-  // Проверка доступности email
-  // useEffect(() => {
-  //   if (!formData.email.includes("@")) {
-  //     setAvailability((prev) => ({
-  //       ...prev,
-  //       email: { available: null, checking: false },
-  //     }));
-  //     return;
-  //   }
+  // Check email availability
+  useEffect(() => {
+    if (!formData.email.includes("@")) {
+      setAvailability((prev) => ({
+        ...prev,
+        email: { available: null, checking: false },
+      }));
+      return;
+    }
 
-  //   const timer = setTimeout(async () => {
-  //     setAvailability((prev) => ({
-  //       ...prev,
-  //       email: { ...prev.email, checking: true },
-  //     }));
-  //     try {
-  //       const response = await checkAvailability({ email: formData.email });
-  //       setAvailability((prev) => ({
-  //         ...prev,
-  //         email: { available: response.emailAvailable, checking: false },
-  //       }));
-  //     } catch (error) {
-  //       console.error("Email check error:", error);
-  //       setAvailability((prev) => ({
-  //         ...prev,
-  //         email: { available: null, checking: false },
-  //       }));
-  //     }
-  //   }, 500);
+    const timer = setTimeout(async () => {
+      setAvailability((prev) => ({
+        ...prev,
+        email: { ...prev.email, checking: true },
+      }));
+      try {
+        const response = await checkAvailability({ email: formData.email });
+        setAvailability((prev) => ({
+          ...prev,
+          email: { available: response.emailAvailable, checking: false },
+        }));
+      } catch (error) {
+        console.error("Email check error:", error);
+        setAvailability((prev) => ({
+          ...prev,
+          email: { available: null, checking: false },
+        }));
+      }
+    }, 500);
 
-  //   return () => clearTimeout(timer);
-  // }, [formData.email]);
+    return () => clearTimeout(timer);
+  }, [formData.email]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -189,6 +259,13 @@ export function AddUserForm({ onRegister }) {
     }
     return null;
   };
+
+  const getPasswordRequirementIcon = (met) => (
+    <FontAwesomeIcon
+      icon={met ? faCheckCircle : faExclamationCircle}
+      className={`ml-2 ${met ? "text-green-500" : "text-gray-400"}`}
+    />
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -291,9 +368,11 @@ export function AddUserForm({ onRegister }) {
         {formErrors.login && (
           <p className="mt-1 text-sm text-red-600">{formErrors.login}</p>
         )}
-        {formData.login.length > 0 && formData.login.length < 3 && (
-          <p className="mt-1 text-sm text-yellow-600">Минимум 3 символа</p>
-        )}
+        {formData.login.length > 0 &&
+          formData.login.length < 3 &&
+          !formErrors.login && (
+            <p className="mt-1 text-sm text-yellow-600">Минимум 3 символа</p>
+          )}
         {availability.login.available === false && (
           <p className="mt-1 text-sm text-red-600">Этот логин уже занят</p>
         )}
@@ -450,6 +529,33 @@ export function AddUserForm({ onRegister }) {
         {formErrors.password && (
           <p className="mt-1 text-sm text-red-600">{formErrors.password}</p>
         )}
+
+        {/* Password requirements */}
+        <div className="mt-2 text-sm text-gray-600">
+          <p className="font-medium">Требования к паролю:</p>
+          <ul className="space-y-1">
+            <li className="flex items-center">
+              {getPasswordRequirementIcon(passwordRequirements.length)}
+              <span>Минимум 8 символов</span>
+            </li>
+            <li className="flex items-center">
+              {getPasswordRequirementIcon(passwordRequirements.upperCase)}
+              <span>Хотя бы одна заглавная буква (A-Z)</span>
+            </li>
+            <li className="flex items-center">
+              {getPasswordRequirementIcon(passwordRequirements.lowerCase)}
+              <span>Хотя бы одна строчная буква (a-z)</span>
+            </li>
+            <li className="flex items-center">
+              {getPasswordRequirementIcon(passwordRequirements.number)}
+              <span>Хотя бы одна цифра (0-9)</span>
+            </li>
+            <li className="flex items-center">
+              {getPasswordRequirementIcon(passwordRequirements.specialChar)}
+              <span>Хотя бы один специальный символ (!@#$%^&* и т.д.)</span>
+            </li>
+          </ul>
+        </div>
       </div>
 
       {/* Подтверждение пароля */}
@@ -498,10 +604,22 @@ export function AddUserForm({ onRegister }) {
 
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+        disabled={isSubmitting}
+        className={`w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 ${
+          isSubmitting ? "opacity-75 cursor-not-allowed" : ""
+        }`}
       >
-        Зарегистрировать
-        <FontAwesomeIcon icon={faSignInAlt} />
+        {isSubmitting ? (
+          <>
+            <FontAwesomeIcon icon={faSpinner} spin />
+            Обработка...
+          </>
+        ) : (
+          <>
+            Зарегистрировать
+            <FontAwesomeIcon icon={faSignInAlt} />
+          </>
+        )}
       </button>
     </form>
   );

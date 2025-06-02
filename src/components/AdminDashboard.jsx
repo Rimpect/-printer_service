@@ -13,6 +13,7 @@ import {
   faUserPlus,
   faUsersCog,
 } from "@fortawesome/free-solid-svg-icons";
+import { registerUser } from "../api/api"; // Убедитесь в правильности пути
 import { AddUserForm } from "./AdminDashboard/AddUserForm";
 import { GenerateReport } from "./AdminDashboard/GenerateReport";
 import { NewRequest } from "./NewRequest";
@@ -63,13 +64,24 @@ export function AdminDashboard({
       badge: null,
     },
   ];
+  const [registerError, setRegisterError] = useState(null);
+  const [registerSuccess, setRegisterSuccess] = useState(false);
+
   const handleRegister = async (userData) => {
+    setRegisterError(null); // Сбрасываем ошибку
+    setRegisterSuccess(false); // Сбрасываем статус успеха
+
     try {
-      await registerUser(userData);
-      alert("Пользователь успешно зарегистрирован!");
+      console.log("Регистрируем пользователя:", userData);
+      const response = await registerUser(userData);
+      console.log("Ответ сервера:", response);
+
+      setRegisterSuccess(true); // Устанавливаем статус успеха
+
+      // Можно добавить дополнительную логику после успешной регистрации
     } catch (error) {
-      console.error("Registration failed:", error);
-      throw error; // Пробрасываем ошибку для обработки в форме
+      console.error("Ошибка регистрации:", error);
+      setRegisterError(error.message || "Произошла ошибка при регистрации");
     }
   };
   const renderTabContent = () => {
