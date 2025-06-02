@@ -6,28 +6,50 @@ const authMiddleware = require("../middleware/authMiddleware");
 // Регистрация
 router.post("/register", async (req, res) => {
   try {
-    const { email, password, name } = req.body;
-
-    if (!email || !password || !name) {
-      return res
-        .status(400)
-        .json({ error: "Email, password and name are required" });
-    }
-
-    const user = await ServiceAuthService.register(email, password, name);
+    console.log("Registration request body:", req.body);
+    const user = await ServiceAuthService.register(req.body);
     res.status(201).json(user);
   } catch (error) {
-    console.error("Registration error:", error);
-    res.status(400).json({ error: error.message });
+    console.error("Registration error:", {
+      status: error.status,
+      message: error.message,
+      stack: error.stack,
+      body: req.body,
+    });
+    res.status(error.status || 500).json({
+      error: error.message || "Ошибка регистрации",
+    });
+  }
+});
+// Проверка доступности логина/почты
+router.get("/check-availability", async (req, res) => {
+  try {
+    const { login, email } = req.query;
+
+    if (!login && !email) {
+      return res.status(400).json({
+        error: "Укажите login или email для проверки",
+      });
+    }
+
+    const availability = await ServiceAuthService.checkAvailability({
+      login,
+      email,
+    });
+    res.json(availability);
+  } catch (error) {
+    console.error("Check availability error:", error);
+    res.status(500).json({
+      error: error.message || "Ошибка при проверке доступности",
+    });
   }
 });
 
 // Вход
 router.post("/login", async (req, res) => {
   try {
-    
     const { login, password } = req.body;
-    
+
     if (!login || !password) {
       return res.status(400).json({ error: "login and password are required" });
     }
@@ -99,6 +121,15 @@ router.get("/me", authMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Get user error:", error);
     res.status(500).json({ error: "Failed to get user info" });
+  }
+});
+router.get("/auth/check-availability", async (req, res) => {
+  try {
+    const { login, email } = req.query;
+    const result = await ServiceAuthService.checkAvailability({ login, email });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 

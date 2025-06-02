@@ -1,30 +1,37 @@
-import { useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faPlusCircle, faHistory, faTools, 
-  faPrint, faExclamationTriangle, 
-  faPaperPlane, faListUl, faInbox, faFile, faUserPlus, faUsersCog
-} from '@fortawesome/free-solid-svg-icons';
-import { AddUserForm } from './AdminDashboard/AddUserForm';
-import { GenerateReport } from './AdminDashboard/GenerateReport';
-import { NewRequest } from './NewRequest';
-import { MyRequests } from './MyRequests';
+import { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faPlusCircle,
+  faHistory,
+  faTools,
+  faPrint,
+  faExclamationTriangle,
+  faPaperPlane,
+  faListUl,
+  faInbox,
+  faFile,
+  faUserPlus,
+  faUsersCog,
+} from "@fortawesome/free-solid-svg-icons";
+import { AddUserForm } from "./AdminDashboard/AddUserForm";
+import { GenerateReport } from "./AdminDashboard/GenerateReport";
+import { NewRequest } from "./NewRequest";
+import { MyRequests } from "./MyRequests";
 
-
-export function AdminDashboard({ 
-  printers = [], 
-  onRequestSubmit = () => {}, 
-  userRequests = [] 
+export function AdminDashboard({
+  printers = [],
+  onRequestSubmit = () => {},
+  userRequests = [],
 }) {
-  const [selectedPrinter, setSelectedPrinter] = useState('');
-  const [problemDescription, setProblemDescription] = useState('');
-  const [activeTab, setActiveTab] = useState('newRequest'); // Изменено на 'newRequest' (с маленькой буквы)
+  const [selectedPrinter, setSelectedPrinter] = useState("");
+  const [problemDescription, setProblemDescription] = useState("");
+  const [activeTab, setActiveTab] = useState("newRequest"); // Изменено на 'newRequest' (с маленькой буквы)
   const handleSubmit = (e) => {
     e.preventDefault();
     onRequestSubmit(selectedPrinter, problemDescription);
-    setSelectedPrinter('');
-    setProblemDescription('');
-    setActiveTab('myRequests');
+    setSelectedPrinter("");
+    setProblemDescription("");
+    setActiveTab("myRequests");
   };
 
   const safeUserRequests = Array.isArray(userRequests) ? userRequests : [];
@@ -32,34 +39,42 @@ export function AdminDashboard({
 
   const tabs = [
     {
-      id: 'newRequest',
+      id: "newRequest",
       icon: faPlusCircle,
-      label: 'Новая заявка',
-      badge: null
+      label: "Новая заявка",
+      badge: null,
     },
     {
-      id: 'myRequests',
+      id: "myRequests",
       icon: faHistory,
-      label: 'Мои заявки',
-      badge: safeUserRequests.length
+      label: "Мои заявки",
+      badge: safeUserRequests.length,
     },
     {
-      id: 'AddUsers',
+      id: "AddUsers",
       icon: faUserPlus,
-      label: 'Регистрация нового пользователя',
-      badge: null
+      label: "Регистрация нового пользователя",
+      badge: null,
     },
     {
-      id: 'GenerateReport',
+      id: "GenerateReport",
       icon: faFile,
-      label: 'Сгенерировать отчет',
-      badge: null
-    }
+      label: "Сгенерировать отчет",
+      badge: null,
+    },
   ];
-
+  const handleRegister = async (userData) => {
+    try {
+      await registerUser(userData);
+      alert("Пользователь успешно зарегистрирован!");
+    } catch (error) {
+      console.error("Registration failed:", error);
+      throw error; // Пробрасываем ошибку для обработки в форме
+    }
+  };
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'newRequest':
+      case "newRequest":
         return (
           <NewRequest
             printers={safePrinters}
@@ -70,14 +85,14 @@ export function AdminDashboard({
             handleSubmit={handleSubmit}
           />
         );
-      case 'myRequests':
+      case "myRequests":
         return <MyRequests userRequests={safeUserRequests} />;
-      case 'AddUsers':
-        return <AddUserForm />;
-      case 'GenerateReport':
+      case "AddUsers":
+        return <AddUserForm onRegister={handleRegister} />;
+      case "GenerateReport":
         return <GenerateReport />;
       default:
-        return  (
+        return (
           <NewRequest
             printers={safePrinters}
             selectedPrinter={selectedPrinter}
@@ -94,13 +109,13 @@ export function AdminDashboard({
     <div className="user-dashboard p-2 sm:p-4">
       {/* Адаптивная панель вкладок */}
       <div className="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-4 mb-4 sm:mb-6 border-b border-gray-200 overflow-x-auto pb-1">
-        {tabs.map(tab => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
             className={`px-3 py-1 sm:px-4 sm:py-2 text-sm sm:text-base font-medium flex items-center gap-1 sm:gap-2 whitespace-nowrap flex-shrink-0 ${
-              activeTab === tab.id 
-                ? 'text-blue-600 border-b-2 border-blue-600' 
-                : 'text-gray-600 hover:text-gray-800'
+              activeTab === tab.id
+                ? "text-blue-600 border-b-2 border-blue-600"
+                : "text-gray-600 hover:text-gray-800"
             }`}
             onClick={() => setActiveTab(tab.id)}
           >
@@ -117,9 +132,7 @@ export function AdminDashboard({
       </div>
 
       {/* Адаптивный контент */}
-      <div className="p-1 sm:p-0">
-        {renderTabContent()}
-      </div>
+      <div className="p-1 sm:p-0">{renderTabContent()}</div>
     </div>
   );
 }

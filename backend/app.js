@@ -3,7 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const printerRoutes = require("./src/routers/printer.routes");
 const serviceRequestRoutes = require("./src/routers/serviceRequest.routes");
-const ServiceAuthService = require("./src/routers/serviceAuth.routers");
+const authRouter = require("./src/routers/serviceAuth.routers");
 const app = express();
 
 // Middleware
@@ -21,7 +21,7 @@ app.use(express.json());
 app.use("/api/printers", printerRoutes);
 // После других middleware
 app.use("/api/service-requests", serviceRequestRoutes);
-app.use("/api/auth", ServiceAuthService);
+app.use("/api/auth", authRouter);
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

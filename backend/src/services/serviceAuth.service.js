@@ -4,22 +4,50 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 
 class ServiceAuthService {
-  static async register(login, password, name, role = "user") {
-    // Проверяем уникальность логина
-    const existingUser = await query(
-      "SELECT * FROM users1111 WHERE login = $1",
-      [login]
-    );
+  static async register(userData) {
+    const { login, email } = userData;
 
-    if (existingUser.rows.length > 0) {
-      throw new Error("User with this login already exists");
+    // Проверка доступности логина и email
+    const { loginAvailable, emailAvailable } = await this.checkAvailability({
+      login,
+      email,
+    });
+
+    if (!loginAvailable) {
+      throw {
+        status: 400,
+        message: "Пользователь с таким логином уже существует",
+      };
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    if (!emailAvailable) {
+      throw {
+        status: 400,
+        message: "Пользователь с таким email уже существует",
+      };
+    }
+
+    // Остальная логика регистрации
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
 
     const { rows } = await query(
-      "INSERT INTO users1111 (login, password, name, role) VALUES ($1, $2, $3, $4) RETURNING id, login, name, role",
-      [login, hashedPassword, name, role]
+      `INSERT INTO users (
+      name, surname, patronymic, login, email, phone,
+      role, post, place_of_work, password
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    RETURNING id, name, login, role`,
+      [
+        userData.name,
+        userData.surname,
+        userData.patronymic,
+        userData.login,
+        userData.email,
+        userData.phone,
+        userData.role,
+        userData.post,
+        userData.placeOfWork,
+        hashedPassword,
+      ]
     );
 
     return rows[0];
@@ -36,8 +64,8 @@ class ServiceAuthService {
     }
 
     const user = rows[0];
-    console.log('Input password:', password);
-console.log('Stored hash:', user.password);
+    console.log("Input password:", password);
+    console.log("Stored hash:", user.password);
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -77,7 +105,35 @@ console.log('Stored hash:', user.password);
     await query("DELETE FROM refresh_tokens WHERE token = $1", [refreshToken]);
     return { success: true };
   }
+  static async checkAvailability({ login, email }) {
+    const result = {
+      loginAvailable: true,
+      emailAvailable: true,
+    };
 
+    try {
+      if (login) {
+        const existingUser = await query(
+          "SELECT id FROM users WHERE login = $1",
+          [login]
+        );
+        result.loginAvailable = existingUser.rows.length === 0;
+      }
+
+      if (email) {
+        const existingUser = await query(
+          "SELECT id FROM users WHERE email = $1",
+          [email]
+        );
+        result.emailAvailable = existingUser.rows.length === 0;
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Database check error:", error);
+      throw new Error("Ошибка проверки базы данных");
+    }
+  }
   static async refreshTokens(refreshToken) {
     // Проверяем refresh токен в БД
     const tokenData = await query(

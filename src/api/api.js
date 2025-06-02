@@ -68,7 +68,58 @@ const refreshToken = async () => {
     return null;
   }
 };
+// Добавляем в ваш API-модуль (где находятся Login, logout и другие функции)
+export const registerUser = async (userData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userData),
+    });
 
+    const data = await response.json(); // Всегда пытаемся получить JSON
+
+    if (!response.ok) {
+      // Если сервер вернул сообщение об ошибке - используем его
+      throw new Error(data.message || `Ошибка регистрации: ${response.status}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Registration error details:", {
+      error: error.message,
+      response: error.response,
+    });
+    throw error; // Пробрасываем оригинальную ошибку
+  }
+};
+export const checkAvailability = async ({ login, email }) => {
+  try {
+    // Создаем URL с параметрами
+    const url = new URL(`${API_BASE_URL}/auth/check-availability`);
+    if (login) url.searchParams.append("login", login);
+    if (email) url.searchParams.append("email", email);
+
+    const response = await fetch(url.toString());
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorData = JSON.parse(errorText);
+        throw new Error(errorData.error || `Ошибка: ${response.status}`);
+      } catch {
+        throw new Error(errorText || `Ошибка: ${response.status}`);
+      }
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Check availability failed:", error);
+    throw new Error(error.message || "Сервис проверки недоступен");
+  }
+};
 // Аутентификация
 export const Login = async (login, password) => {
   const response = await fetch(`${API_BASE_URL}/auth/login`, {
