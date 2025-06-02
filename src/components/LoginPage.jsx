@@ -3,14 +3,24 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSignInAlt, faUser, faLock, faEye, faEyeSlash  } from '@fortawesome/free-solid-svg-icons';
 
 export function LoginPage({ onLogin }) {
-  const [username, setUsername] = useState('');
+  const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onLogin(username, password);
-  };
-
+// В LoginPage.jsx
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!login || !password) return;
+  
+  setIsLoading(true);
+  try {
+    await onLogin(login, password);  // Здесь login и password - это состояния компонента
+  } catch (error) {
+    console.error('Login error:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
@@ -39,8 +49,8 @@ export function LoginPage({ onLogin }) {
             <input
               type="text"
               id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={login}
+              onChange={(e) => setLogin(e.target.value)}
               className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               required
             />
