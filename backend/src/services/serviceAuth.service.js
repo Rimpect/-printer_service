@@ -54,25 +54,42 @@ class ServiceAuthService {
   }
 
   static async login(login, password) {
-    console.log("Trying to login with:", login); // Добавьте это
-    const { rows } = await query("SELECT * FROM users1111 WHERE login = $1", [
+    console.log(`Поиск пользователя с логином: ${login}`);
+
+    // 1. Найти пользователя
+    const { rows } = await query("SELECT * FROM users WHERE login = $1", [
       login,
     ]);
-    console.log("Found users:", rows); // И это
+
     if (rows.length === 0) {
-      throw new Error("Invalid credentials");
+      console.log(`Пользователь ${login} не найден`);
+      throw new Error("Неверные учетные данные");
     }
 
     const user = rows[0];
-    console.log("Input password:", password);
-    console.log("Stored hash:", user.password);
+    console.log(`Найден пользователь: ${JSON.stringify(user)}`);
+
+    // 2. Проверить пароль
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log(`Сравнение пароля: ${isMatch}`);
 
     if (!isMatch) {
-      throw new Error("Invalid credentials");
+      throw new Error("Неверные учетные данные");
     }
 
-    // Генерация токена с логином
+    // 3. Проверить существование пользователя в БД (доп. проверка)
+    const userExists = await query("SELECT id FROM users WHERE id = $1", [
+      user.id,
+    ]);
+    if (userExists.rows.length === 0) {
+      console.error(
+        `Критическая ошибка: пользователь ${user.id} не найден при проверке`
+      );
+      throw new Error("Ошибка системы аутентификации");
+    }
+
+    // 4. Генерация токенов
+    console.log(`Генерация токенов для пользователя ${user.id}`);
     const accessToken = jwt.sign(
       { id: user.id, login: user.login, role: user.role },
       process.env.JWT_ACCESS_SECRET,
@@ -81,10 +98,18 @@ class ServiceAuthService {
 
     const refreshToken = crypto.randomBytes(40).toString("hex");
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-    await query(
-      "INSERT INTO refresh_tokens (token, user_id, expires_at) VALUES ($1, $2, $3)",
-      [refreshToken, user.id, expiresAt]
-    );
+
+    // 5. Сохранение refresh token
+    console.log(`Сохранение refresh токена для пользователя ${user.id}`);
+    try {
+      await query(
+        "INSERT INTO refresh_tokens (token, user_id, expires_at) VALUES ($1, $2, $3)",
+        [refreshToken, user.id, expiresAt]
+      );
+    } catch (err) {
+      console.error("Ошибка сохранения refresh токена:", err);
+      throw new Error("Ошибка создания сессии");
+    }
 
     return {
       user: {
@@ -99,7 +124,6 @@ class ServiceAuthService {
       },
     };
   }
-
   static async logout(refreshToken) {
     // Удаляем refresh токен из БД
     await query("DELETE FROM refresh_tokens WHERE token = $1", [refreshToken]);
@@ -148,7 +172,7 @@ class ServiceAuthService {
     const tokenRecord = tokenData.rows[0];
 
     // Получаем данные пользователя
-    const userData = await query("SELECT * FROM users1111 WHERE id = $1", [
+    const userData = await query("SELECT * FROM users  WHERE id = $1", [
       tokenRecord.user_id,
     ]);
     if (userData.rows.length === 0) {

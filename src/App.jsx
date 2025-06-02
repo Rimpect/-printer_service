@@ -138,7 +138,7 @@ const handleLogin = async (login, password) => {
             userRequests={requests.filter((r) => r.userId === user.id)}
           />
         )}
-        {view === "service" && (
+        {view === "Service" && (
           <ServiceDashboard
             printers={printers}
             requests={requests}
