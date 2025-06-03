@@ -2,24 +2,49 @@ const express = require("express");
 const router = express.Router();
 const ServiceRequestService = require("../services/serviceRequest.service");
 const authMiddleware = require("../middleware/authMiddleware");
-
-// Получение заявок пользователя
-router.get("/", async (req, res) => {
+const { query } = require("../config/database"); // Добавьте эту строку\
+query("SELECT 1")
+  .then(() => console.log("Database connected"))
+  .catch((err) => console.error("Database connection error", err));
+// Получение всех заявок
+router.get("/", authMiddleware, async (req, res) => {
   try {
-    const requests = await ServiceRequestService.getRequests(
-      (printerId = null),
-      (problemDescription = null)
-    );
+    const requests = await ServiceRequestService.getRequests();
     res.json(requests);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to fetch requests" });
+    console.error("Error in GET /service-requests:", {
+      message: error.message,
+      stack: error.stack,
+    });
+    res.status(500).json({
+      error: "Internal server error",
+      details: process.env.NODE_ENV === "development" ? error.message : null,
+    });
   }
 });
+
+// Получение открытых заявок
+router.get("/open", authMiddleware, async (req, res) => {
+  try {
+    console.log("Fetching open requests..."); // Логирование
+    const { rows } = await query(
+      "SELECT * FROM service_requests WHERE status = 'open'"
+    );
+    console.log(`Found ${rows.length} open requests`); // Логирование количества
+    res.json(rows);
+  } catch (error) {
+    console.error("Error in /open endpoint:", error);
+    res.status(500).json({
+      error: "Failed to fetch open requests",
+      details: process.env.NODE_ENV === "development" ? error.message : null,
+    });
+  }
+});
+
+// Получение заявок текущего пользователя
 router.get("/my", authMiddleware, async (req, res) => {
   try {
-    console.log("Authenticated user ID:", req.user.id); // Логируем ID пользователя
-
+    console.log("Authenticated user ID:", req.user.id);
     const requests = await ServiceRequestService.getUserRequests(req.user.id);
     res.json(requests);
   } catch (error) {
@@ -30,13 +55,14 @@ router.get("/my", authMiddleware, async (req, res) => {
     });
   }
 });
+
 // Создание новой заявки
 router.post("/", authMiddleware, async (req, res) => {
   try {
     console.log("Полученные данные:", req.body);
 
     const { printer_id, problem_description } = req.body;
-    const user_id = req.user.id; // ID из аутентификации
+    const user_id = req.user.id;
 
     if (!printer_id || !problem_description) {
       return res
@@ -59,10 +85,16 @@ router.post("/", authMiddleware, async (req, res) => {
     });
   }
 });
+
 // Закрытие заявки
-router.put("/:id/close", async (req, res) => {
+router.put("/:id/close", authMiddleware, async (req, res) => {
   try {
-    const request = await ServiceRequestService.closeRequest(req.params.id);
+    const { repair_cost, work_description } = req.body;
+    const request = await ServiceRequestService.closeRequest(
+      req.params.id,
+      repair_cost,
+      work_description
+    );
     if (!request) {
       return res.status(404).json({ error: "Request not found" });
     }
@@ -72,56 +104,56 @@ router.put("/:id/close", async (req, res) => {
     res.status(500).json({ error: "Failed to close request" });
   }
 });
-// backend/src/routers/serviceRequest.routes.js
-// backend/src/routers/serviceRequest.routes.js
-
-router.get("/my", async (req, res) => {
+router.put("/:id/status", authMiddleware, async (req, res) => {
   try {
-    // Получаем ID пользователя из токена (нужно добавить middleware для извлечения user_id)
-    const userId = req.user.id;
-    const requests = await ServiceRequestService.getUserRequests(userId);
-    res.json(requests);
+    const { status } = req.body;
+    const { rows } = await query(
+      "UPDATE service_requests SET status = $1 WHERE id = $2 RETURNING *",
+      [status, req.params.id]
+    );
+    res.json(rows[0]);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Failed to fetch user requests" });
+    res.status(500).json({ error: "Failed to update request status" });
   }
 });
-
-router.get("/", async (req, res) => {
-  console.log("Получен запрос на /api/service-requests");
-
+// Назначение заявки сервисному центру
+router.put("/:id/assign", authMiddleware, async (req, res) => {
   try {
-    // Проверка соединения с БД
-    await query("SELECT 1");
-    console.log("Соединение с БД работает");
+    const { service_center_id } = req.body;
 
-    // Основной запрос
-    const { rows } = await query(`
-      SELECT 
-        sr.id,
-        sr.printer_id,
-        sr.problem_description,
-        sr.status,
-        sr.created_at,
-        p.model as printer_model,
-        p.location as printer_location
-      FROM service_requests sr
-      JOIN printers p ON sr.printer_id = p.id
-      ORDER BY sr.created_at DESC
-    `);
+    // Проверка существования сервисного центра
+    const centerCheck = await query(
+      "SELECT id FROM service_centers WHERE id = $1",
+      [service_center_id]
+    );
 
-    console.log(`Успешно получено ${rows.length} заявок`);
-    res.json(rows);
+    if (centerCheck.rows.length === 0) {
+      return res.status(400).json({ error: "Service center not found" });
+    }
+
+    const { rows } = await query(
+      `UPDATE service_requests 
+       SET service_center_id = $1, 
+           status = 'in_progress' 
+       WHERE id = $2 
+       RETURNING *`,
+      [service_center_id, req.params.id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Request not found" });
+    }
+
+    res.json(rows[0]);
   } catch (error) {
-    console.error("Ошибка в /api/service-requests:", {
-      message: error.message,
-      stack: error.stack,
-      query: error.query,
-    });
+    console.error("Assign error:", error);
     res.status(500).json({
-      error: "Database error",
+      error: "Failed to assign request",
       details: process.env.NODE_ENV === "development" ? error.message : null,
     });
   }
 });
+// Получение информации о текущем пользователе
+
 module.exports = router;

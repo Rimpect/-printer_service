@@ -42,35 +42,42 @@ SELECT
   }
 
   // serviceRequest.service.js
-  static async getUserRequests(userId) {
-    try {
-      console.log("Executing query for user ID:", userId); // Добавьте логирование
+  static async getOpenRequests() {
+    const { rows } = await query(
+      `SELECT 
+      sr.id,
+      p.model as printer_model,
+      sr.problem_description,
+      sr.created_at,
+      u.login as user_login
+    FROM service_requests sr
+    JOIN printers p ON sr.printer_id = p.id
+    JOIN users u ON sr.user_id = u.id
+    WHERE sr.status = 'open'
+    ORDER BY sr.created_at DESC`
+    );
+    return rows;
+  }
 
-      const { rows } = await query(
-        `SELECT 
-         sr.id,
-         p.model as printer_model,
-         sr.problem_description,
-         sr.status,
-         sr.created_at,
-         sr.closed_at
-       FROM service_requests sr
-       JOIN printers p ON sr.printer_id = p.id
-       WHERE sr.user_id = $1
-       ORDER BY sr.created_at DESC`,
-        [userId]
-      );
-
-      console.log("Query results:", rows); // Логируем результаты
-      return rows;
-    } catch (error) {
-      console.error("Database error in getUserRequests:", {
-        message: error.message,
-        query: error.query, // Если ваш драйвер БД предоставляет это
-        stack: error.stack,
-      });
-      throw error; // Пробрасываем ошибку дальше
-    }
+  static async closeRequest(requestId, repairCost, workDescription) {
+    const { rows } = await query(
+      `UPDATE service_requests 
+     SET 
+       status = 'closed', 
+       closed_at = NOW(),
+       repair_cost = $2,
+       work_description = $3
+     WHERE id = $1 RETURNING *`,
+      [requestId, repairCost, workDescription]
+    );
+    return rows[0];
+  }
+  static async updateRequestStatus(requestId, status) {
+    const { rows } = await query(
+      "UPDATE service_requests SET status = $1 WHERE id = $2 RETURNING *",
+      [status, requestId]
+    );
+    return rows[0];
   }
 }
 

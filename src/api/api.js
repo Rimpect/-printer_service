@@ -156,11 +156,6 @@ export const logout = async () => {
   localStorage.removeItem("refreshToken");
 };
 
-export const fetchCurrentUser = async () => {
-  const response = await authFetch("/auth/me");
-  return await response.json();
-};
-
 // Остальные API функции
 export const fetchPrinters = async () => {
   const response = await authFetch("/printers");
@@ -202,5 +197,44 @@ export const unbanUser = async (userId) => {
 
 export const getUserRequests = async () => {
   const response = await authFetch("/service-requests/my");
+  return await response.json();
+};
+export const getOpenRequests = async () => {
+  const response = await authFetch("/service-requests/open");
+  return await response.json();
+};
+
+export const updateRequestStatus = async (requestId, status) => {
+  const response = await authFetch(`/service-requests/${requestId}/status`, {
+    method: "PUT",
+    body: JSON.stringify({ status }),
+  });
+  return await response.json();
+};
+
+export const closeServiceRequest = async (
+  requestId,
+  repairCost,
+  workDescription
+) => {
+  const response = await authFetch(`/service-requests/${requestId}/close`, {
+    method: "PUT",
+    body: JSON.stringify({
+      repair_cost: repairCost,
+      work_description: workDescription,
+    }),
+  });
+  return await response.json();
+};
+export const updateServiceCenter = async (requestId, serviceCenterId) => {
+  const response = await authFetch(`/service-requests/${requestId}/assign`, {
+    method: "PUT",
+    body: JSON.stringify({ service_center_id: serviceCenterId }),
+  });
+  return await response.json();
+};
+
+export const fetchCurrentUser = async () => {
+  const response = await authFetch("/auth/me");
   return await response.json();
 };

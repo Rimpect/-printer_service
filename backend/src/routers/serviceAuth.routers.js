@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const ServiceAuthService = require("../services/serviceAuth.service");
 const authMiddleware = require("../middleware/authMiddleware");
-
+const { query } = require("../config/database"); // Добавьте эту строку\
 // Регистрация
 router.post("/register", async (req, res) => {
   try {
@@ -109,18 +109,16 @@ router.get("/validate", authMiddleware, async (req, res) => {
 router.get("/me", authMiddleware, async (req, res) => {
   try {
     const { rows } = await query(
-      "SELECT id, email, name, role FROM users WHERE id = $1",
+      "SELECT id, login, role FROM users WHERE id = $1",
       [req.user.id]
     );
-
-    if (rows.length === 0) {
+    if (!rows[0]) {
       return res.status(404).json({ error: "User not found" });
     }
-
     res.json(rows[0]);
   } catch (error) {
-    console.error("Get user error:", error);
-    res.status(500).json({ error: "Failed to get user info" });
+    console.error("Error in /me:", error);
+    res.status(500).json({ error: "Failed to fetch user data" });
   }
 });
 router.get("/auth/check-availability", async (req, res) => {
