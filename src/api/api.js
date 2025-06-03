@@ -5,6 +5,7 @@ console.log("Full login URL:", `${API_BASE_URL}/auth/login`);
 // Общая функция для авторизованных запросов
 const authFetch = async (url, options = {}) => {
   const token = localStorage.getItem("accessToken");
+  console.log("[authFetch] Request to:", url, "Token exists:", !!token);
   const headers = {
     "Content-Type": "application/json",
     ...options.headers,
@@ -196,5 +197,10 @@ export const unbanUser = async (userId) => {
   const response = await authFetch(`/users/${userId}/unban`, {
     method: "POST",
   });
+  return await response.json();
+};
+
+export const getUserRequests = async () => {
+  const response = await authFetch("/service-requests/my");
   return await response.json();
 };
