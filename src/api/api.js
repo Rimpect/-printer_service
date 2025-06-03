@@ -238,3 +238,12 @@ export const fetchCurrentUser = async () => {
   const response = await authFetch("/auth/me");
   return await response.json();
 };
+export const getAssignedRequests = async () => {
+  const response = await authFetch("/service-requests/assigned");
+  return await response.json();
+};
+// Альтернативно, можно использовать существующую функцию с параметром
+export const getRequestsByStatus = async (status) => {
+  const response = await authFetch(`/service-requests?status=${status}`);
+  return await response.json();
+};

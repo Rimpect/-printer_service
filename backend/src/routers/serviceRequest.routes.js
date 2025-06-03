@@ -86,24 +86,6 @@ router.post("/", authMiddleware, async (req, res) => {
   }
 });
 
-// Закрытие заявки
-router.put("/:id/close", authMiddleware, async (req, res) => {
-  try {
-    const { repair_cost, work_description } = req.body;
-    const request = await ServiceRequestService.closeRequest(
-      req.params.id,
-      repair_cost,
-      work_description
-    );
-    if (!request) {
-      return res.status(404).json({ error: "Request not found" });
-    }
-    res.json(request);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to close request" });
-  }
-});
 router.put("/:id/status", authMiddleware, async (req, res) => {
   try {
     const { status } = req.body;
@@ -122,14 +104,11 @@ router.put("/:id/assign", authMiddleware, async (req, res) => {
   try {
     const { service_center_id } = req.body;
 
-    if (!service_center_id) {
-      return res.status(400).json({ error: "Service center ID is required" });
-    }
-
     const { rows } = await query(
       `UPDATE service_requests 
        SET service_center_id = $1, 
-           status = 'in_progress' 
+           status = 'in_progress',
+           updated_at = NOW()
        WHERE id = $2 
        RETURNING *`,
       [service_center_id, req.params.id]
@@ -142,11 +121,68 @@ router.put("/:id/assign", authMiddleware, async (req, res) => {
     res.json(rows[0]);
   } catch (error) {
     console.error("Assign error:", error);
+    res.status(500).json({ error: "Failed to assign request" });
+  }
+});
+// Получение назначенных заявок для сервисного центра
+router.get("/assigned", authMiddleware, async (req, res) => {
+  try {
+    console.log("Fetching assigned requests for service center:", req.user.id);
+
+    const { rows } = await query(
+      `SELECT 
+        sr.id,
+        p.model as printer_model,
+        u.login as user_login,
+        sr.problem_description,
+        sr.created_at,
+        sr.status
+      FROM service_requests sr
+      JOIN printers p ON sr.printer_id = p.id
+      JOIN users u ON sr.user_id = u.id
+      WHERE sr.status = 'in_progress'
+      AND sr.service_center_id = $1
+      ORDER BY sr.created_at DESC`,
+      [req.user.id]
+    );
+
+    console.log(`Found ${rows.length} assigned requests`);
+    res.json(rows);
+  } catch (error) {
+    console.error("Error in /assigned endpoint:", error);
     res.status(500).json({
-      error: "Failed to assign request",
-      details: error.message,
+      error: "Failed to fetch assigned requests",
+      details: process.env.NODE_ENV === "development" ? error.message : null,
     });
   }
 });
+router.put("/:id/close", authMiddleware, async (req, res) => {
+  try {
+    const { repair_cost, work_description } = req.body;
 
+    if (!repair_cost || !work_description) {
+      return res.status(400).json({
+        error: "Необходимо указать стоимость ремонта и описание работ",
+      });
+    }
+
+    const request = await ServiceRequestService.closeRequest(
+      req.params.id,
+      repair_cost,
+      work_description
+    );
+
+    if (!request) {
+      return res.status(404).json({ error: "Заявка не найдена" });
+    }
+
+    res.json(request);
+  } catch (error) {
+    console.error("Ошибка закрытия заявки:", error);
+    res.status(500).json({
+      error: "Ошибка сервера при закрытии заявки",
+      details: process.env.NODE_ENV === "development" ? error.message : null,
+    });
+  }
+});
 module.exports = router;

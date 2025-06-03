@@ -10,6 +10,7 @@ import {
   updateRequestStatus,
   updateServiceCenter,
   fetchCurrentUser,
+  getAssignedRequests,
 } from "../api/api";
 
 export function ServiceDashboard() {
@@ -51,32 +52,30 @@ export function ServiceDashboard() {
       alert("Не удалось загрузить открытые заявки");
     }
   };
-
   const fetchMyRequests = async () => {
     try {
-      const requests = await getAllRequests();
-      // Фильтруем заявки, которые в работе или назначены текущему сервисному центру
-      const filteredRequests = requests.filter(
-        (r) =>
-          r.status === "in_progress" && r.service_center_id === currentUser.id
-      );
-      setMyRequests(filteredRequests);
+      const requests = await getAssignedRequests();
+      setMyRequests(requests);
     } catch (error) {
-      console.error("Error fetching my requests:", error);
+      console.error("Ошибка загрузки назначенных заявок:", error);
       alert("Не удалось загрузить ваши заявки");
     }
   };
-
   const handleTakeRequest = async (requestId) => {
     try {
+      // First update the status
       await updateRequestStatus(requestId, "in_progress");
-      await updateServiceCenter(requestId, currentUser.id); // Убедитесь, что currentUser.id передаётся
-      fetchOpenRequests();
-      fetchMyRequests();
+
+      // Then assign to service center
+      await updateServiceCenter(requestId, currentUser.id);
+
+      // Refresh both lists
+      await Promise.all([fetchOpenRequests(), fetchMyRequests()]);
+
       alert("Заявка взята в работу");
     } catch (error) {
       console.error("Error taking request:", error);
-      alert("Ошибка при взятии заявки");
+      alert(`Ошибка при взятии заявки: ${error.message}`);
     }
   };
   const handleCloseRequest = async (e) => {

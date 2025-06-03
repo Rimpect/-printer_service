@@ -61,17 +61,28 @@ SELECT
   }
 
   static async closeRequest(requestId, repairCost, workDescription) {
-    const { rows } = await query(
-      `UPDATE service_requests 
-     SET 
-       status = 'closed', 
-       closed_at = NOW(),
-       repair_cost = $2,
-       work_description = $3
-     WHERE id = $1 RETURNING *`,
-      [requestId, repairCost, workDescription]
-    );
-    return rows[0];
+    try {
+      const { rows } = await query(
+        `UPDATE service_requests 
+       SET 
+         status = 'closed', 
+         closed_at = NOW(),
+         repair_cost = $2,
+         work_description = $3
+       WHERE id = $1 
+       RETURNING *`,
+        [requestId, repairCost, workDescription]
+      );
+
+      if (rows.length === 0) {
+        throw new Error("Request not found");
+      }
+
+      return rows[0];
+    } catch (error) {
+      console.error("Error closing request:", error);
+      throw error;
+    }
   }
   static async updateRequestStatus(requestId, status) {
     const { rows } = await query(
@@ -79,6 +90,25 @@ SELECT
       [status, requestId]
     );
     return rows[0];
+  }
+  static async getAssignedRequests(serviceCenterId) {
+    const { rows } = await query(
+      `SELECT 
+      sr.id,
+      p.model as printer_model,
+      u.login as user_login,
+      sr.problem_description,
+      sr.created_at,
+      sr.status
+    FROM service_requests sr
+    JOIN printers p ON sr.printer_id = p.id
+    JOIN users u ON sr.user_id = u.id
+    WHERE sr.status = 'in_progress'
+    AND sr.service_center_id = $1
+    ORDER BY sr.created_at DESC`,
+      [serviceCenterId]
+    );
+    return rows;
   }
 }
 
