@@ -40,7 +40,23 @@ SELECT
     );
     return rows[0];
   }
-
+  static async getUserRequests(userId) {
+    const { rows } = await query(
+      `SELECT 
+      sr.id,
+      p.model as printer_model,
+      sr.problem_description,
+      sr.created_at,
+      sr.status,
+      sr.service_center_id
+    FROM service_requests sr
+    JOIN printers p ON sr.printer_id = p.id
+    WHERE sr.user_id = $1
+    ORDER BY sr.created_at DESC`,
+      [userId]
+    );
+    return rows;
+  }
   // serviceRequest.service.js
   static async getOpenRequests() {
     const { rows } = await query(

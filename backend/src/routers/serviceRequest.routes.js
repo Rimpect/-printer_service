@@ -26,29 +26,31 @@ router.get("/", authMiddleware, async (req, res) => {
 // Получение открытых заявок
 router.get("/open", authMiddleware, async (req, res) => {
   try {
-    console.log("Fetching open requests..."); // Логирование
-    const { rows } = await query(
-      "SELECT * FROM service_requests WHERE status = 'open'"
-    );
-    console.log(`Found ${rows.length} open requests`); // Логирование количества
-    res.json(rows);
+    const requests = await ServiceRequestService.getOpenRequests();
+    console.log("Open requests data:", requests); // Добавьте эту строку
+    res.json(requests);
   } catch (error) {
     console.error("Error in /open endpoint:", error);
-    res.status(500).json({
-      error: "Failed to fetch open requests",
-      details: process.env.NODE_ENV === "development" ? error.message : null,
-    });
+    res.status(500).json({ error: "Failed to fetch open requests" });
   }
 });
 
 // Получение заявок текущего пользователя
+// Получение заявок текущего пользователя
 router.get("/my", authMiddleware, async (req, res) => {
   try {
-    console.log("Authenticated user ID:", req.user.id);
+    console.log("Fetching requests for user ID:", req.user.id);
+
     const requests = await ServiceRequestService.getUserRequests(req.user.id);
+
+    console.log(`Found ${requests.length} requests for user`);
     res.json(requests);
   } catch (error) {
-    console.error("Error in /my endpoint:", error);
+    console.error("Error in /my endpoint:", {
+      message: error.message,
+      stack: error.stack,
+    });
+
     res.status(500).json({
       error: "Failed to fetch user requests",
       details: process.env.NODE_ENV === "development" ? error.message : null,

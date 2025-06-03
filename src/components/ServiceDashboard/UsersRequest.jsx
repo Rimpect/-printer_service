@@ -5,6 +5,19 @@ import {
   faCheckCircle,
 } from "@fortawesome/free-solid-svg-icons";
 export function UsersRequest({ openRequests, onTakeRequest }) {
+  // Добавьте форматирование даты как в MyRequests
+  const formatDate = (dateString) => {
+    if (!dateString) return "Нет данных";
+    const options = {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    };
+    return new Date(dateString).toLocaleString("ru-RU", options);
+  };
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h3 className="text-xl font-semibold mb-6">Открытые заявки</h3>
@@ -43,16 +56,18 @@ export function UsersRequest({ openRequests, onTakeRequest }) {
                 <tr key={request.id}>
                   <td className="px-6 py-4 whitespace-nowrap">{index + 1}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {request.printer_model}
+                    {request.printer_model || "Неизвестная модель"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {request.user_login}
+                    {request.user_login || "Неизвестный пользователь"}
                   </td>
                   <td className="px-6 py-4">
-                    {request.problem_description.substring(0, 50)}...
+                    {request.problem_description
+                      ? `${request.problem_description.substring(0, 50)}...`
+                      : "Нет описания"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {new Date(request.created_at).toLocaleString()}
+                    {formatDate(request.created_at)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <button
