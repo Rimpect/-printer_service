@@ -122,14 +122,8 @@ router.put("/:id/assign", authMiddleware, async (req, res) => {
   try {
     const { service_center_id } = req.body;
 
-    // Проверка существования сервисного центра
-    const centerCheck = await query(
-      "SELECT id FROM service_centers WHERE id = $1",
-      [service_center_id]
-    );
-
-    if (centerCheck.rows.length === 0) {
-      return res.status(400).json({ error: "Service center not found" });
+    if (!service_center_id) {
+      return res.status(400).json({ error: "Service center ID is required" });
     }
 
     const { rows } = await query(
@@ -150,10 +144,9 @@ router.put("/:id/assign", authMiddleware, async (req, res) => {
     console.error("Assign error:", error);
     res.status(500).json({
       error: "Failed to assign request",
-      details: process.env.NODE_ENV === "development" ? error.message : null,
+      details: error.message,
     });
   }
 });
-// Получение информации о текущем пользователе
 
 module.exports = router;

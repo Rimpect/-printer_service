@@ -69,11 +69,8 @@ export function ServiceDashboard() {
 
   const handleTakeRequest = async (requestId) => {
     try {
-      // Обновляем статус заявки
       await updateRequestStatus(requestId, "in_progress");
-      // Назначаем заявку текущему пользователю (сервисному центру)
-      await updateServiceCenter(requestId, currentUser.id);
-      // Обновляем списки заявок
+      await updateServiceCenter(requestId, currentUser.id); // Убедитесь, что currentUser.id передаётся
       fetchOpenRequests();
       fetchMyRequests();
       alert("Заявка взята в работу");
@@ -82,7 +79,6 @@ export function ServiceDashboard() {
       alert("Ошибка при взятии заявки");
     }
   };
-
   const handleCloseRequest = async (e) => {
     e.preventDefault();
     try {

@@ -47,9 +47,10 @@ SELECT
       `SELECT 
       sr.id,
       p.model as printer_model,
+      u.login as user_login,
       sr.problem_description,
       sr.created_at,
-      u.login as user_login
+      sr.status
     FROM service_requests sr
     JOIN printers p ON sr.printer_id = p.id
     JOIN users u ON sr.user_id = u.id
