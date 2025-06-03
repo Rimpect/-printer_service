@@ -3,15 +3,17 @@ const express = require("express");
 const cors = require("cors");
 const printerRoutes = require("./src/routers/printer.routes");
 const serviceRequestRoutes = require("./src/routers/serviceRequest.routes");
-const ServiceAuthService = require("./src/routers/serviceAuth.routers");
+const authRouter = require("./src/routers/serviceAuth.routers");
 const app = express();
 
 // Middleware
 app.use(cors());
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || "http://localhost:5173", // Укажите адрес вашего фронта
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Добавили OPTIONS
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  credentials: true, // Если используете куки/сессии
+  optionsSuccessStatus: 200, // Для старых браузеров
 };
 
 app.use(cors(corsOptions));
@@ -21,7 +23,7 @@ app.use(express.json());
 app.use("/api/printers", printerRoutes);
 // После других middleware
 app.use("/api/service-requests", serviceRequestRoutes);
-app.use("/api/auth", ServiceAuthService);
+app.use("/api/auth", authRouter);
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

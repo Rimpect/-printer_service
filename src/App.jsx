@@ -36,16 +36,12 @@ function App() {
           setView(currentUser.role);
 
           // Загружаем дополнительные данные
-          const [printersData, requestsData, usersData] = await Promise.all([
+          const [printersData, usersData] = await Promise.all([
             fetchPrinters(),
-            getAllRequests(),
             getAllUsers(),
           ]);
-
           setPrinters(printersData);
-          setRequests(requestsData);
           setUsers(usersData);
-          setBannedUsers(usersData.filter((u) => u.isBanned).map((u) => u.id));
         }
       } catch (error) {
         console.error("Auth check failed:", error);
@@ -58,16 +54,16 @@ function App() {
 
     checkAuth();
   }, []);
-const handleLogin = async (login, password) => {
-  try {
-    const data = await Login(login, password); // Передаём только логин и пароль
-    localStorage.setItem('accessToken', data.tokens.accessToken);
-    setUser(data.user);
-    setView(data.user.role);
-  } catch (error) {
-    alert(error.message);
-  }
-};
+  const handleLogin = async (login, password) => {
+    try {
+      const data = await Login(login, password); // Передаём только логин и пароль
+      localStorage.setItem("accessToken", data.tokens.accessToken);
+      setUser(data.user);
+      setView(data.user.role);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
   const handleLogout = async () => {
     try {
       await logout();
@@ -135,10 +131,9 @@ const handleLogin = async (login, password) => {
           <UserDashboard
             printers={printers}
             onRequestSubmit={handleRequestSubmit}
-            userRequests={requests.filter((r) => r.userId === user.id)}
           />
         )}
-        {view === "service" && (
+        {view === "Service" && (
           <ServiceDashboard
             printers={printers}
             requests={requests}

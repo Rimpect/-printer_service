@@ -2,32 +2,53 @@ const express = require("express");
 const router = express.Router();
 const ServiceAuthService = require("../services/serviceAuth.service");
 const authMiddleware = require("../middleware/authMiddleware");
-
+const { query } = require("../config/database"); // Добавьте эту строку\
 // Регистрация
 router.post("/register", async (req, res) => {
   try {
-    const { email, password, name } = req.body;
-
-    if (!email || !password || !name) {
-      return res
-        .status(400)
-        .json({ error: "Email, password and name are required" });
-    }
-
-    const user = await ServiceAuthService.register(email, password, name);
+    const user = await ServiceAuthService.register(req.body);
     res.status(201).json(user);
   } catch (error) {
-    console.error("Registration error:", error);
-    res.status(400).json({ error: error.message });
+    console.error("Registration error:", {
+      status: error.status,
+      message: error.message,
+      stack: error.stack,
+      body: req.body,
+    });
+    res.status(error.status || 500).json({
+      error: error.message || "Ошибка регистрации",
+    });
+  }
+});
+// Проверка доступности логина/почты
+router.get("/check-availability", async (req, res) => {
+  try {
+    const { login, email } = req.query;
+
+    if (!login && !email) {
+      return res.status(400).json({
+        error: "Укажите login или email для проверки",
+      });
+    }
+
+    const availability = await ServiceAuthService.checkAvailability({
+      login,
+      email,
+    });
+    res.json(availability);
+  } catch (error) {
+    console.error("Check availability error:", error);
+    res.status(500).json({
+      error: error.message || "Ошибка при проверке доступности",
+    });
   }
 });
 
 // Вход
 router.post("/login", async (req, res) => {
   try {
-    
     const { login, password } = req.body;
-    
+
     if (!login || !password) {
       return res.status(400).json({ error: "login and password are required" });
     }
@@ -87,18 +108,25 @@ router.get("/validate", authMiddleware, async (req, res) => {
 router.get("/me", authMiddleware, async (req, res) => {
   try {
     const { rows } = await query(
-      "SELECT id, email, name, role FROM users WHERE id = $1",
+      "SELECT id, login, role FROM users WHERE id = $1",
       [req.user.id]
     );
-
-    if (rows.length === 0) {
+    if (!rows[0]) {
       return res.status(404).json({ error: "User not found" });
     }
-
     res.json(rows[0]);
   } catch (error) {
-    console.error("Get user error:", error);
-    res.status(500).json({ error: "Failed to get user info" });
+    console.error("Error in /me:", error);
+    res.status(500).json({ error: "Failed to fetch user data" });
+  }
+});
+router.get("/auth/check-availability", async (req, res) => {
+  try {
+    const { login, email } = req.query;
+    const result = await ServiceAuthService.checkAvailability({ login, email });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 
