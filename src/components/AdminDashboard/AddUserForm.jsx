@@ -201,6 +201,7 @@ export function AddUserForm({ onRegister }) {
     }
   };
 
+  
   // Проверка доступности логина
   useEffect(() => {
     if (formData.login.length < 3) {
