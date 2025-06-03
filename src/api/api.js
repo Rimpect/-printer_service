@@ -67,6 +67,32 @@ const refreshToken = async () => {
     return null;
   }
 };
+
+// Добавляем в ваш API-модуль (где находятся Login, logout и другие функции)
+export const registerPrinter = async (userData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/AddPrinter/registerPrinter`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(userData),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Ошибка сервера:", data);
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+    return data;
+  } catch (error) {
+    console.error("Полная ошибка регистрации:", error);
+    throw error;
+  }
+};
+
 // Добавляем в ваш API-модуль (где находятся Login, logout и другие функции)
 export const registerUser = async (userData) => {
   try {

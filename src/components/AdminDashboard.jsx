@@ -10,6 +10,7 @@ import {
 import { registerUser } from "../api/api";
 import { AddUserForm } from "./AdminDashboard/AddUserForm";
 import { GenerateReport } from "./AdminDashboard/GenerateReport";
+import { AddPrinter } from "./AdminDashboard/AddPrinter";
 import { NewRequest } from "./NewRequest";
 import { MyRequests } from "./MyRequests";
 
@@ -92,6 +93,11 @@ export function AdminDashboard({
       icon: faFile,
       label: "Отчет",
     },
+    {
+      id: "AddPrinter",
+      icon: faFile,
+      label: "Добавление принтера",
+    },
   ];
 
   const handleRegister = async (userData) => {
@@ -123,6 +129,8 @@ export function AdminDashboard({
         return <AddUserForm onRegister={handleRegister} />;
       case "GenerateReport":
         return <GenerateReport />;
+      case "AddPrinter":
+        return <AddPrinter />;
       default:
         return (
           <NewRequest
@@ -173,3 +181,6 @@ export function AdminDashboard({
     </div>
   );
 }
+
+
+

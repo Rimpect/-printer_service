@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const printerRoutes = require("./src/routers/printer.routes");
+const ServiceAddPrinter = require("./src/routers/serviceAddPrinter.routes");
 const serviceRequestRoutes = require("./src/routers/serviceRequest.routes");
 const authRouter = require("./src/routers/serviceAuth.routers");
 const app = express();
@@ -24,6 +25,7 @@ app.use("/api/printers", printerRoutes);
 // После других middleware
 app.use("/api/service-requests", serviceRequestRoutes);
 app.use("/api/auth", authRouter);
+app.use("/api/AddPrinter", ServiceAddPrinter);
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
