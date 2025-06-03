@@ -148,7 +148,7 @@ export function ServiceDashboard() {
           onClick={() => setActiveTab("myRequests")}
         >
           <FontAwesomeIcon icon={faListAlt} />
-          Мои заявки ({myRequests.length})
+          Принятые в работу заявки ({myRequests.length})
         </button>
       </div>
 

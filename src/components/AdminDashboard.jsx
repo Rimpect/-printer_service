@@ -9,7 +9,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { registerUser } from "../api/api";
 import { AddUserForm } from "./AdminDashboard/AddUserForm";
-import { GenerateReport } from "./AdminDashboard/GenerateReport";
+// import { GenerateReport } from "./AdminDashboard/GenerateReport";
 import { AddPrinter } from "./AdminDashboard/AddPrinter";
 import { NewRequest } from "./NewRequest";
 import { MyRequests } from "./MyRequests";
@@ -88,11 +88,11 @@ export function AdminDashboard({
       icon: faUserPlus,
       label: "Регистрация пользователя",
     },
-    {
-      id: "GenerateReport",
-      icon: faFile,
-      label: "Отчет",
-    },
+    // {
+    //   id: "GenerateReport",
+    //   icon: faFile,
+    //   label: "Отчет",
+    // },
     {
       id: "AddPrinter",
       icon: faFile,
@@ -127,8 +127,8 @@ export function AdminDashboard({
         return <MyRequests userRequests={safeUserRequests} />;
       case "AddUsers":
         return <AddUserForm onRegister={handleRegister} />;
-      case "GenerateReport":
-        return <GenerateReport />;
+      // case "GenerateReport":
+      //   return <GenerateReport />;
       case "AddPrinter":
         return <AddPrinter />;
       default:
