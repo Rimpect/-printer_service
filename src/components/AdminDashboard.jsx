@@ -1,19 +1,13 @@
 import { useState } from "react";
+import { Modal } from "./Modal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlusCircle,
   faHistory,
-  faTools,
-  faPrint,
-  faExclamationTriangle,
-  faPaperPlane,
-  faListUl,
-  faInbox,
-  faFile,
   faUserPlus,
-  faUsersCog,
+  faFile,
 } from "@fortawesome/free-solid-svg-icons";
-import { registerUser } from "../api/api"; // Убедитесь в правильности пути
+import { registerUser } from "../api/api";
 import { AddUserForm } from "./AdminDashboard/AddUserForm";
 import { GenerateReport } from "./AdminDashboard/GenerateReport";
 import { NewRequest } from "./NewRequest";
@@ -24,15 +18,54 @@ export function AdminDashboard({
   onRequestSubmit = () => {},
   userRequests = [],
 }) {
+  // Состояния для формы
   const [selectedPrinter, setSelectedPrinter] = useState("");
   const [problemDescription, setProblemDescription] = useState("");
-  const [activeTab, setActiveTab] = useState("newRequest"); // Изменено на 'newRequest' (с маленькой буквы)
+  const [activeTab, setActiveTab] = useState("newRequest");
+
+  // Состояние для модального окна
+  const [modal, setModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  // Функция для показа модального окна
+  const showModal = (title, message, type = "info") => {
+    setModal({
+      isOpen: true,
+      title,
+      message,
+      type,
+    });
+  };
+
+  // Функция для закрытия модального окна
+  const closeModal = () => {
+    setModal((prev) => ({ ...prev, isOpen: false }));
+  };
+
+  // Обработчик отправки формы
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Проверка заполнения полей
+    if (!selectedPrinter) {
+      showModal("Ошибка", "Пожалуйста, выберите принтер", "error");
+      return;
+    }
+
+    if (!problemDescription.trim()) {
+      showModal("Ошибка", "Пожалуйста, опишите проблему", "error");
+      return;
+    }
+
     onRequestSubmit(selectedPrinter, problemDescription);
     setSelectedPrinter("");
     setProblemDescription("");
     setActiveTab("myRequests");
+    showModal("Успех", "Заявка успешно отправлена!", "success");
   };
 
   const safeUserRequests = Array.isArray(userRequests) ? userRequests : [];
@@ -43,47 +76,34 @@ export function AdminDashboard({
       id: "newRequest",
       icon: faPlusCircle,
       label: "Новая заявка",
-      badge: null,
     },
     {
       id: "myRequests",
       icon: faHistory,
       label: "Мои заявки",
-      badge: safeUserRequests.length,
     },
     {
       id: "AddUsers",
       icon: faUserPlus,
-      label: "Регистрация нового пользователя",
-      badge: null,
+      label: "Регистрация пользователя",
     },
     {
       id: "GenerateReport",
       icon: faFile,
-      label: "Сгенерировать отчет",
-      badge: null,
+      label: "Отчет",
     },
   ];
-  const [registerError, setRegisterError] = useState(null);
-  const [registerSuccess, setRegisterSuccess] = useState(false);
 
   const handleRegister = async (userData) => {
-    setRegisterError(null); // Сбрасываем ошибку
-    setRegisterSuccess(false); // Сбрасываем статус успеха
-
     try {
-      console.log("Регистрируем пользователя:", userData);
-      const response = await registerUser(userData);
-      console.log("Ответ сервера:", response);
-
-      setRegisterSuccess(true); // Устанавливаем статус успеха
-
-      // Можно добавить дополнительную логику после успешной регистрации
+      await registerUser(userData);
+      showModal("Успех", "Пользователь успешно зарегистрирован!", "success");
     } catch (error) {
       console.error("Ошибка регистрации:", error);
-      setRegisterError(error.message || "Произошла ошибка при регистрации");
+      showModal("Ошибка", error.message || "Ошибка при регистрации", "error");
     }
   };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "newRequest":
@@ -119,7 +139,17 @@ export function AdminDashboard({
 
   return (
     <div className="user-dashboard p-2 sm:p-4">
-      {/* Адаптивная панель вкладок */}
+      {/* Модальное окно */}
+      <Modal
+        isOpen={modal.isOpen}
+        onClose={closeModal}
+        title={modal.title}
+        type={modal.type}
+      >
+        {modal.message}
+      </Modal>
+
+      {/* Панель вкладок */}
       <div className="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-4 mb-4 sm:mb-6 border-b border-gray-200 overflow-x-auto pb-1">
         {tabs.map((tab) => (
           <button
@@ -133,17 +163,12 @@ export function AdminDashboard({
           >
             <FontAwesomeIcon icon={tab.icon} className="text-xs sm:text-sm" />
             <span className="hidden sm:inline">{tab.label}</span>
-            <span className="sm:hidden">{tab.shortLabel || tab.label}</span>
-            {tab.badge !== null && (
-              <span className="bg-gray-200 text-gray-800 text-xs font-semibold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full">
-                {tab.badge}
-              </span>
-            )}
+            <span className="sm:hidden">{tab.label.split(" ")[0]}</span>
           </button>
         ))}
       </div>
 
-      {/* Адаптивный контент */}
+      {/* Контент вкладок */}
       <div className="p-1 sm:p-0">{renderTabContent()}</div>
     </div>
   );

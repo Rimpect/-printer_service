@@ -6,7 +6,6 @@ const { query } = require("../config/database"); // Добавьте эту ст
 // Регистрация
 router.post("/register", async (req, res) => {
   try {
-    console.log("Registration request body:", req.body);
     const user = await ServiceAuthService.register(req.body);
     res.status(201).json(user);
   } catch (error) {

@@ -12,6 +12,7 @@ import {
   fetchCurrentUser,
   getAssignedRequests,
 } from "../api/api";
+import { Modal } from "./Modal"; // Импортируем компонент Modal
 
 export function ServiceDashboard() {
   const [activeTab, setActiveTab] = useState("openRequests");
@@ -21,6 +22,12 @@ export function ServiceDashboard() {
   const [repairCost, setRepairCost] = useState("");
   const [workDescription, setWorkDescription] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
+  const [modal, setModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
 
   // Загрузка текущего пользователя при монтировании
   useEffect(() => {
@@ -30,6 +37,11 @@ export function ServiceDashboard() {
         setCurrentUser(user);
       } catch (error) {
         console.error("Error loading user:", error);
+        showModal(
+          "Ошибка",
+          "Не удалось загрузить данные пользователя",
+          "error"
+        );
       }
     };
     loadUser();
@@ -43,24 +55,39 @@ export function ServiceDashboard() {
     }
   }, [currentUser]);
 
+  const showModal = (title, message, type = "info") => {
+    setModal({
+      isOpen: true,
+      title,
+      message,
+      type,
+    });
+  };
+
+  const closeModal = () => {
+    setModal({ ...modal, isOpen: false });
+  };
+
   const fetchOpenRequests = async () => {
     try {
       const requests = await getOpenRequests();
       setOpenRequests(requests);
     } catch (error) {
       console.error("Error fetching open requests:", error);
-      alert("Не удалось загрузить открытые заявки");
+      showModal("Ошибка", "Не удалось загрузить открытые заявки", "error");
     }
   };
+
   const fetchMyRequests = async () => {
     try {
       const requests = await getAssignedRequests();
       setMyRequests(requests);
     } catch (error) {
       console.error("Ошибка загрузки назначенных заявок:", error);
-      alert("Не удалось загрузить ваши заявки");
+      showModal("Ошибка", "Не удалось загрузить ваши заявки", "error");
     }
   };
+
   const handleTakeRequest = async (requestId) => {
     try {
       // First update the status
@@ -72,12 +99,17 @@ export function ServiceDashboard() {
       // Refresh both lists
       await Promise.all([fetchOpenRequests(), fetchMyRequests()]);
 
-      alert("Заявка взята в работу");
+      showModal("Успех", "Заявка взята в работу", "success");
     } catch (error) {
       console.error("Error taking request:", error);
-      alert(`Ошибка при взятии заявки: ${error.message}`);
+      showModal(
+        "Ошибка",
+        `Ошибка при взятии заявки: ${error.message}`,
+        "error"
+      );
     }
   };
+
   const handleCloseRequest = async (e) => {
     e.preventDefault();
     try {
@@ -86,10 +118,10 @@ export function ServiceDashboard() {
       setRepairCost("");
       setWorkDescription("");
       fetchMyRequests();
-      alert("Заявка успешно закрыта");
+      showModal("Успех", "Заявка успешно закрыта", "success");
     } catch (error) {
       console.error("Error closing request:", error);
-      alert("Ошибка при закрытии заявки");
+      showModal("Ошибка", "Ошибка при закрытии заявки", "error");
     }
   };
 
@@ -139,6 +171,15 @@ export function ServiceDashboard() {
           handleSubmit={handleCloseRequest}
         />
       )}
+
+      <Modal
+        isOpen={modal.isOpen}
+        onClose={closeModal}
+        title={modal.title}
+        type={modal.type}
+      >
+        {modal.message}
+      </Modal>
     </div>
   );
 }

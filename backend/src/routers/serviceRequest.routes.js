@@ -27,7 +27,7 @@ router.get("/", authMiddleware, async (req, res) => {
 router.get("/open", authMiddleware, async (req, res) => {
   try {
     const requests = await ServiceRequestService.getOpenRequests();
-    console.log("Open requests data:", requests); // Добавьте эту строку
+
     res.json(requests);
   } catch (error) {
     console.error("Error in /open endpoint:", error);
@@ -39,11 +39,8 @@ router.get("/open", authMiddleware, async (req, res) => {
 // Получение заявок текущего пользователя
 router.get("/my", authMiddleware, async (req, res) => {
   try {
-    console.log("Fetching requests for user ID:", req.user.id);
-
     const requests = await ServiceRequestService.getUserRequests(req.user.id);
 
-    console.log(`Found ${requests.length} requests for user`);
     res.json(requests);
   } catch (error) {
     console.error("Error in /my endpoint:", {
@@ -61,8 +58,6 @@ router.get("/my", authMiddleware, async (req, res) => {
 // Создание новой заявки
 router.post("/", authMiddleware, async (req, res) => {
   try {
-    console.log("Полученные данные:", req.body);
-
     const { printer_id, problem_description } = req.body;
     const user_id = req.user.id;
 
@@ -129,8 +124,6 @@ router.put("/:id/assign", authMiddleware, async (req, res) => {
 // Получение назначенных заявок для сервисного центра
 router.get("/assigned", authMiddleware, async (req, res) => {
   try {
-    console.log("Fetching assigned requests for service center:", req.user.id);
-
     const { rows } = await query(
       `SELECT 
         sr.id,
@@ -148,7 +141,6 @@ router.get("/assigned", authMiddleware, async (req, res) => {
       [req.user.id]
     );
 
-    console.log(`Found ${rows.length} assigned requests`);
     res.json(rows);
   } catch (error) {
     console.error("Error in /assigned endpoint:", error);

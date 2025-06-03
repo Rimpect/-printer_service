@@ -22,7 +22,6 @@ export function MyRequests() {
       try {
         setIsLoading(true);
         const data = await getUserRequests();
-        console.log("Полученные данные:", data); // Логируем полученные данные
         setRequests(data);
       } catch (error) {
         setError("Не удалось загрузить заявки");
@@ -34,7 +33,6 @@ export function MyRequests() {
     loadRequests();
   }, []);
 
-  // Функция для преобразования статуса
   const getStatusDisplay = (status) => {
     if (!status) return { text: "Новый", icon: faClock, class: "bg-gray-100" };
 
@@ -62,7 +60,6 @@ export function MyRequests() {
     }
   };
 
-  // Функция для форматирования даты
   const formatDate = (dateString) => {
     if (!dateString) return "Нет данных";
     const options = {
@@ -108,62 +105,95 @@ export function MyRequests() {
           <p className="text-gray-600">У вас пока нет отправленных заявок</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  №
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <FontAwesomeIcon icon={faPrint} className="mr-1" /> Принтер
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <FontAwesomeIcon icon={faCalendarAlt} className="mr-1" /> Дата
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <FontAwesomeIcon
-                    icon={faExclamationCircle}
-                    className="mr-1"
-                  />{" "}
-                  Проблема
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Статус
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {requests.map((request, index) => {
-                const status = getStatusDisplay(request.status);
-                return (
-                  <tr key={request.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {index + 1}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {request.printer_model || "Неизвестная модель"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(request.created_at)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {request.problem_description || "Нет описания"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${status.class}`}
-                      >
-                        <FontAwesomeIcon icon={status.icon} className="mr-1" />
-                        {status.text}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <>
+          {/* Таблица для десктопов */}
+          <div className="hidden sm:block overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    №
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <FontAwesomeIcon icon={faPrint} className="mr-1" /> Принтер
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <FontAwesomeIcon icon={faCalendarAlt} className="mr-1" /> Дата
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <FontAwesomeIcon icon={faExclamationCircle} className="mr-1" /> Проблема
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Статус
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {requests.map((request, index) => {
+                  const status = getStatusDisplay(request.status);
+                  return (
+                    <tr key={request.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {index + 1}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {request.printer_model || "Неизвестная модель"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatDate(request.created_at)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {request.problem_description || "Нет описания"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${status.class}`}
+                        >
+                          <FontAwesomeIcon icon={status.icon} className="mr-1" />
+                          {status.text}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Карточки для мобильных устройств */}
+          <div className="sm:hidden space-y-4">
+            {requests.map((request, index) => {
+              const status = getStatusDisplay(request.status);
+              return (
+                <div key={request.id} className="border rounded-lg p-4 shadow-sm">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="font-medium text-gray-900">
+                      #{index + 1} {request.printer_model || "Неизвестная модель"}
+                    </div>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${status.class}`}
+                    >
+                      <FontAwesomeIcon icon={status.icon} className="mr-1" />
+                      {status.text}
+                    </span>
+                  </div>
+                  
+                  <div className="text-sm text-gray-500 mb-2">
+                    <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
+                    {formatDate(request.created_at)}
+                  </div>
+                  
+                  <div className="text-sm">
+                    <div className="flex items-start mb-1">
+                      <FontAwesomeIcon icon={faExclamationCircle} className="mr-2 mt-0.5 flex-shrink-0" />
+                      <span>{request.problem_description || "Нет описания"}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
     </div>
   );

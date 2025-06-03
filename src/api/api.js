@@ -1,11 +1,9 @@
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://localhost:3000/api";
-console.log("API_BASE_URL:", API_BASE_URL);
-console.log("Full login URL:", `${API_BASE_URL}/auth/login`);
 // Общая функция для авторизованных запросов
 const authFetch = async (url, options = {}) => {
   const token = localStorage.getItem("accessToken");
-  console.log("[authFetch] Request to:", url, "Token exists:", !!token);
+
   const headers = {
     "Content-Type": "application/json",
     ...options.headers,
@@ -72,11 +70,6 @@ const refreshToken = async () => {
 // Добавляем в ваш API-модуль (где находятся Login, logout и другие функции)
 export const registerUser = async (userData) => {
   try {
-    console.log(
-      "Отправка данных регистрации:",
-      JSON.stringify(userData, null, 2)
-    );
-
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: "POST",
       headers: {
@@ -92,8 +85,6 @@ export const registerUser = async (userData) => {
       console.error("Ошибка сервера:", data);
       throw new Error(data.message || `HTTP error! status: ${response.status}`);
     }
-
-    console.log("Успешная регистрация:", data);
     return data;
   } catch (error) {
     console.error("Полная ошибка регистрации:", error);
