@@ -13,7 +13,7 @@ import {
   fetchPrinters,
   getAllRequests,
   getAllUsers,
-  createServiceRequest
+  createServiceRequest,
 } from "./api/api";
 
 function App() {
@@ -34,20 +34,12 @@ function App() {
           const currentUser = await fetchCurrentUser();
           setUser(currentUser);
           setView(currentUser.role);
-
-          // Загружаем дополнительные данные
-          const [printersData, usersData] = await Promise.all([
-            fetchPrinters(),
-            getAllUsers(),
-          ]);
-          setPrinters(printersData);
-          setUsers(usersData);
         }
       } catch (error) {
-        console.error("Auth check failed:", error);
+        console.error("Ошибка проверки авторизации:", error);
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
-        setError("Ошибка проверки авторизации");
+        setError("Сессия истекла. Пожалуйста, войдите снова.");
       } finally {
         setIsLoading(false);
       }
@@ -60,7 +52,11 @@ function App() {
     try {
       setIsLoading(true);
       const data = await Login(login, password);
+
+      // Сохраняем токены
       localStorage.setItem("accessToken", data.tokens.accessToken);
+      localStorage.setItem("refreshToken", data.tokens.refreshToken);
+
       setUser(data.user);
       setView(data.user.role);
     } catch (error) {
@@ -74,13 +70,10 @@ function App() {
     try {
       await logout();
     } catch (error) {
-      console.error("Logout error:", error);
-      setError("Ошибка при выходе из системы");
+      console.error("Ошибка при выходе:", error);
     } finally {
       setUser(null);
       setView("login");
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
     }
   };
 

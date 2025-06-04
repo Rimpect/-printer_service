@@ -1,51 +1,60 @@
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://localhost:3000/api";
-// Общая функция для авторизованных запросов
+// Главная функция для запросов
 const authFetch = async (url, options = {}) => {
-  const token = localStorage.getItem("accessToken");
+  const makeRequest = async (token) => {
+    const headers = {
+      "Content-Type": "application/json",
+      ...options.headers,
+    };
 
-  const headers = {
-    "Content-Type": "application/json",
-    ...options.headers,
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    return await fetch(`${API_BASE_URL}${url}`, {
+      ...options,
+      headers,
+    });
   };
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
+  // Первая попытка
+  let accessToken = localStorage.getItem("accessToken");
+  let response = await makeRequest(accessToken);
 
-  const response = await fetch(`${API_BASE_URL}${url}`, {
-    ...options,
-    headers,
-  });
-
+  // Если токен истек, пробуем обновить
   if (response.status === 401) {
-    // Попытка обновить токен
-    const newToken = await refreshToken();
-    if (newToken) {
-      headers["Authorization"] = `Bearer ${newToken}`;
-      const retryResponse = await fetch(`${API_BASE_URL}${url}`, {
-        ...options,
-        headers,
-      });
-      return retryResponse;
+    try {
+      const newTokens = await refreshTokens();
+      if (newTokens) {
+        // Повторяем запрос с новым токеном
+        response = await makeRequest(newTokens.accessToken);
+      } else {
+        // Не удалось обновить - разлогиниваем
+        throw new Error("Сессия истекла. Требуется вход.");
+      }
+    } catch (error) {
+      console.error("Ошибка обновления токена:", error);
+      throw error;
     }
-    throw new Error("Необходима авторизация");
   }
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || "Ошибка сервера");
+    throw new Error(errorData.error || errorData.message || "Ошибка сервера");
   }
 
   return response;
 };
-
 // Обновление токена
-const refreshToken = async () => {
-  try {
-    const refreshToken = localStorage.getItem("refreshToken");
-    if (!refreshToken) return null;
+const refreshTokens = async () => {
+  const refreshToken = localStorage.getItem("refreshToken");
+  if (!refreshToken) {
+    console.error("Refresh токен отсутствует");
+    return null;
+  }
 
+  try {
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: "POST",
       headers: {
@@ -55,15 +64,21 @@ const refreshToken = async () => {
     });
 
     if (!response.ok) {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      return null;
+      throw new Error("Ошибка обновления токенов");
     }
 
     const data = await response.json();
+
+    // Сохраняем новые токены
     localStorage.setItem("accessToken", data.accessToken);
-    return data.accessToken;
+    localStorage.setItem("refreshToken", data.refreshToken);
+
+    return data;
   } catch (error) {
+    console.error("Ошибка при обновлении токенов:", error);
+    // Очищаем хранилище при ошибке
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
     return null;
   }
 };
@@ -147,12 +162,12 @@ export const Login = async (login, password) => {
   const response = await fetch(`${API_BASE_URL}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ login, password }), // Теперь отправляем только login
+    body: JSON.stringify({ login, password }),
   });
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || "Login failed");
+    throw new Error(errorData.error || errorData.message || "Ошибка входа");
   }
 
   return await response.json();
@@ -161,16 +176,23 @@ export const Login = async (login, password) => {
 export const logout = async () => {
   const refreshToken = localStorage.getItem("refreshToken");
   if (refreshToken) {
-    await fetch(`${API_BASE_URL}/logout`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ refreshToken }),
-    });
+    try {
+      await fetch(`${API_BASE_URL}/auth/logout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken }),
+      });
+    } catch (error) {
+      console.error("Ошибка при выходе:", error);
+    }
   }
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
+};
+
+export const fetchCurrentUser = async () => {
+  const response = await authFetch("/auth/me");
+  return await response.json();
 };
 
 // Остальные API функции
@@ -251,10 +273,6 @@ export const updateServiceCenter = async (requestId, serviceCenterId) => {
   return await response.json();
 };
 
-export const fetchCurrentUser = async () => {
-  const response = await authFetch("/auth/me");
-  return await response.json();
-};
 export const getAssignedRequests = async () => {
   const response = await authFetch("/service-requests/assigned");
   return await response.json();
