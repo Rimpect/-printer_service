@@ -349,7 +349,7 @@ export function AddUserForm({ onRegister }) {
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
         {/* Поле имени */}
         <div>
           <label

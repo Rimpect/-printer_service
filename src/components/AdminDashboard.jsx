@@ -6,6 +6,7 @@ import {
   faHistory,
   faUserPlus,
   faFile,
+  faPrint,
 } from "@fortawesome/free-solid-svg-icons";
 import { registerUser } from "../api/api";
 import { AddUserForm } from "./AdminDashboard/AddUserForm";
@@ -95,7 +96,7 @@ export function AdminDashboard({
     // },
     {
       id: "AddPrinter",
-      icon: faFile,
+      icon: faPrint,
       label: "Добавление принтера",
     },
   ];

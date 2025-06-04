@@ -21,6 +21,7 @@ export function RepairRequest({
     <form
       onSubmit={handleSubmit}
       className="bg-white p-3 rounded-lg shadow-md max-w-full mx-2 overflow-hidden"
+      autoComplete="off"
     >
       <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
         <FontAwesomeIcon

@@ -84,6 +84,7 @@ export function NewRequest() {
       <form
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded-lg shadow-md"
+        autoComplete="off"
       >
         <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
           <FontAwesomeIcon icon={faTools} />

@@ -15,6 +15,10 @@ import {
   faSpinner,
   faExclamationCircle,
   faTimes,
+  faLocationDot,
+  faPrint,
+
+  
 } from "@fortawesome/free-solid-svg-icons";
 import { registerPrinter } from "../../api/api";
 
@@ -169,14 +173,14 @@ export function AddPrinter({ onRegister }) {
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
         {/* Поле model */}
         <div>
           <label
             htmlFor="model"
             className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2"
           >
-            <FontAwesomeIcon icon={faUser} />
+            <FontAwesomeIcon icon={faPrint} />
             Модель*
           </label>
           <input
@@ -202,7 +206,7 @@ export function AddPrinter({ onRegister }) {
             htmlFor="location"
             className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2"
           >
-            <FontAwesomeIcon icon={faUser} />
+            <FontAwesomeIcon icon={faLocationDot} />
             Местонахождение*
           </label>
           <input
