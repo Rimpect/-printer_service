@@ -99,9 +99,9 @@ class ServiceAuthService {
       },
     };
   }
-  static async logout(refreshToken) {
-    // Удаляем refresh токен из БД
-    await query("DELETE FROM refresh_tokens WHERE token = $1", [refreshToken]);
+  static async logout(userId) {
+    // Удаляем все refresh токены пользователя из БД
+    await query("DELETE FROM refresh_tokens WHERE user_id = $1", [userId]);
     return { success: true };
   }
   static async checkAvailability({ login, email }) {
@@ -133,51 +133,48 @@ class ServiceAuthService {
       throw new Error("Ошибка проверки базы данных");
     }
   }
-  static async refreshTokens(refreshToken) {
-    // 1. Проверить refresh токен в БД
-    const { rows } = await query(
-      "SELECT * FROM refresh_tokens WHERE token = $1 AND expires_at > NOW()",
-      [refreshToken]
-    );
+  static async refreshTokens(oldAccessToken) {
+    try {
+      // Верифицируем старый accessToken
+      const decoded = jwt.verify(
+        oldAccessToken,
+        process.env.JWT_ACCESS_SECRET,
+        { ignoreExpiration: true }
+      );
 
-    if (rows.length === 0) {
-      throw new Error("Недействительный refresh токен");
+      // Находим refreshToken в БД по user_id
+      const { rows } = await query(
+        "SELECT * FROM refresh_tokens WHERE user_id = $1 ORDER BY expires_at DESC LIMIT 1",
+        [decoded.id]
+      );
+
+      if (rows.length === 0) {
+        throw new Error("Refresh token not found");
+      }
+
+      const tokenRecord = rows[0];
+
+      // Проверяем срок действия refreshToken
+      if (new Date(tokenRecord.expires_at) < new Date()) {
+        throw new Error("Refresh token expired");
+      }
+
+      // Генерация новых токенов
+      const newAccessToken = jwt.sign(
+        { id: decoded.id, login: decoded.login, role: decoded.role },
+        process.env.JWT_ACCESS_SECRET,
+        { expiresIn: "15m" }
+      );
+
+      // Возвращаем только новый accessToken
+      return {
+        accessToken: newAccessToken,
+      };
+    } catch (error) {
+      console.error("Refresh token error:", error);
+      throw new Error("Failed to refresh tokens");
     }
-
-    const tokenRecord = rows[0];
-
-    // 2. Получить данные пользователя
-    const userData = await query("SELECT * FROM users WHERE id = $1", [
-      tokenRecord.user_id,
-    ]);
-    if (userData.rows.length === 0) {
-      throw new Error("Пользователь не найден");
-    }
-
-    const user = userData.rows[0];
-
-    // 3. Генерация новых токенов
-    const newAccessToken = jwt.sign(
-      { id: user.id, login: user.login, role: user.role },
-      process.env.JWT_ACCESS_SECRET,
-      { expiresIn: "15m" }
-    );
-
-    const newRefreshToken = crypto.randomBytes(40).toString("hex");
-    const newExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 дней
-
-    // 4. Обновить refresh токен в БД
-    await query(
-      "UPDATE refresh_tokens SET token = $1, expires_at = $2, updated_at = NOW() WHERE id = $3",
-      [newRefreshToken, newExpiresAt, tokenRecord.id]
-    );
-
-    return {
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
-    };
   }
-
   static async validateAccessToken(token) {
     try {
       return jwt.verify(token, process.env.JWT_ACCESS_SECRET);
