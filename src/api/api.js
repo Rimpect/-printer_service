@@ -49,8 +49,6 @@ const authFetch = async (url, options = {}) => {
 // Обновление токена
 const refreshTokens = async () => {
   try {
-    // Отправляем запрос на обновление без передачи refreshToken
-    // Сервер сам найдет его в БД по текущему accessToken
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: "POST",
       headers: {
@@ -77,7 +75,6 @@ const refreshTokens = async () => {
   }
 };
 
-// Добавляем в ваш API-модуль (где находятся Login, logout и другие функции)
 export const registerPrinter = async (userData) => {
   try {
     const response = await fetch(`${API_BASE_URL}/AddPrinter/registerPrinter`, {
@@ -102,7 +99,6 @@ export const registerPrinter = async (userData) => {
   }
 };
 
-// Добавляем в ваш API-модуль (где находятся Login, logout и другие функции)
 export const registerUser = async (userData) => {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
@@ -128,7 +124,6 @@ export const registerUser = async (userData) => {
 };
 export const checkAvailability = async ({ login, email }) => {
   try {
-    // Создаем URL с параметрами
     const url = new URL(`${API_BASE_URL}/auth/check-availability`);
     if (login) url.searchParams.append("login", login);
     if (email) url.searchParams.append("email", email);
@@ -187,7 +182,6 @@ export const fetchCurrentUser = async () => {
   return await response.json();
 };
 
-// Остальные API функции
 export const fetchPrinters = async () => {
   const response = await authFetch("/printers");
   return await response.json();
@@ -269,7 +263,6 @@ export const getAssignedRequests = async () => {
   const response = await authFetch("/service-requests/assigned");
   return await response.json();
 };
-// Альтернативно, можно использовать существующую функцию с параметром
 export const getRequestsByStatus = async (status) => {
   const response = await authFetch(`/service-requests?status=${status}`);
   return await response.json();

@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const ServiceRequestService = require("../services/serviceRequest.service");
 const authMiddleware = require("../middleware/authMiddleware");
-const { query } = require("../config/database"); // Добавьте эту строку\
+const { query } = require("../config/database");
 query("SELECT 1")
   .then(() => console.log("Database connected"))
   .catch((err) => console.error("Database connection error", err));
@@ -35,7 +35,6 @@ router.get("/open", authMiddleware, async (req, res) => {
   }
 });
 
-// Получение заявок текущего пользователя
 // Получение заявок текущего пользователя
 router.get("/my", authMiddleware, async (req, res) => {
   try {

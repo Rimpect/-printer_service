@@ -5,14 +5,13 @@ import { RepairRequest } from "./ServiceDashboard/RepairRequest";
 import { UsersRequest } from "./ServiceDashboard/UsersRequest";
 import {
   getOpenRequests,
-  getAllRequests,
   closeServiceRequest,
   updateRequestStatus,
   updateServiceCenter,
   fetchCurrentUser,
   getAssignedRequests,
 } from "../api/api";
-import { Modal } from "./Modal"; // Импортируем компонент Modal
+import { Modal } from "./Modal";
 
 export function ServiceDashboard() {
   const [activeTab, setActiveTab] = useState("openRequests");
@@ -90,13 +89,10 @@ export function ServiceDashboard() {
 
   const handleTakeRequest = async (requestId) => {
     try {
-      // First update the status
       await updateRequestStatus(requestId, "in_progress");
 
-      // Then assign to service center
       await updateServiceCenter(requestId, currentUser.id);
 
-      // Refresh both lists
       await Promise.all([fetchOpenRequests(), fetchMyRequests()]);
 
       showModal("Успех", "Заявка взята в работу", "success");

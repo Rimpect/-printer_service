@@ -185,6 +185,13 @@ export function AddUserForm({ onRegister }) {
         confirmPassword: "",
       });
       setFormErrors({});
+      setPasswordRequirements({
+      length: false,
+      upperCase: false,
+      lowerCase: false,
+      number: false,
+      specialChar: false,
+      }); 
     } catch (error) {
       // Показ модального окна об ошибке
       setModalContent({

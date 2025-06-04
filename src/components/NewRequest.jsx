@@ -7,7 +7,7 @@ import {
   faPaperPlane,
 } from "@fortawesome/free-solid-svg-icons";
 import { fetchPrinters, createServiceRequest } from "../api/api";
-import { Modal } from "./Modal"; // Предполагается, что Modal находится в этом пути
+import { Modal } from "./Modal";
 
 export function NewRequest() {
   const [printers, setPrinters] = useState([]);

@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faUserPlus, faSearch, faPrint } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faSearch } from '@fortawesome/free-solid-svg-icons';
 
 export function UserManagement() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [users, setUsers] = useState([]); // Здесь должны быть реальные данные пользователей
-  const [printers, setPrinters] = useState([]); // Здесь должны быть реальные данные принтеров
+  const [users, setUsers] = useState([]); 
+  const [printers, setPrinters] = useState([]);
   
   // Фильтрация пользователей по поисковому запросу
   const filteredUsers = users.filter(user => 

@@ -5,7 +5,7 @@ import { LoginPage } from "./components/LoginPage";
 import { UserDashboard } from "./components/UserDashboard";
 import { ServiceDashboard } from "./components/ServiceDashboard";
 import { AdminDashboard } from "./components/AdminDashboard";
-import { ErrorModal } from "./components/ErrorModal"; // Новый компонент для модального окна
+import { ErrorModal } from "./components/ErrorModal";
 import {
   Login,
   logout,
@@ -23,7 +23,7 @@ function App() {
   const [requests, setRequests] = useState([]);
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null); // Состояние для ошибки
+  const [error, setError] = useState(null);
 
   // Проверяем авторизацию при загрузке приложения
   useEffect(() => {
@@ -53,7 +53,6 @@ function App() {
       setIsLoading(true);
       const data = await Login(login, password);
 
-      // Сохраняем токены
       localStorage.setItem("accessToken", data.tokens.accessToken);
       // localStorage.setItem("refreshToken", data.tokens.refreshToken);
 

@@ -7,7 +7,6 @@ class ServiceAuthService {
   static async register(userData) {
     const { login, email } = userData;
 
-    // Проверка доступности логина и email
     const { loginAvailable, emailAvailable } = await this.checkAvailability({
       login,
       email,
@@ -27,7 +26,6 @@ class ServiceAuthService {
       };
     }
 
-    // Остальная логика регистрации
     const hashedPassword = await bcrypt.hash(userData.password, 10);
 
     const { rows } = await query(

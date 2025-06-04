@@ -11,22 +11,22 @@ const app = express();
 app.use(cors());
 const corsOptions = {
   origin: process.env.FRONTEND_URL || "http://localhost:5173",
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Добавили OPTIONS
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], 
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-  credentials: true, // Если используете куки/сессии
-  optionsSuccessStatus: 200, // Для старых браузеров
+  credentials: true, 
+  optionsSuccessStatus: 200, 
 };
 
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Routes
+
 app.use("/api/printers", printerRoutes);
-// После других middleware
+
 app.use("/api/service-requests", serviceRequestRoutes);
 app.use("/api/auth", authRouter);
 app.use("/api/AddPrinter", ServiceAddPrinter);
-// Error handling middleware
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: "Something went wrong!" });
@@ -36,7 +36,6 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 
-  // Проверка подключения к БД
   require("./src/config/database")
     .query("SELECT NOW()")
     .then(() => console.log("Database connected successfully"))

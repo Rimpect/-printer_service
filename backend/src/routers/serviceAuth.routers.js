@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const ServiceAuthService = require("../services/serviceAuth.service");
 const authMiddleware = require("../middleware/authMiddleware");
-const { query } = require("../config/database"); // Добавьте эту строку\
+const { query } = require("../config/database");
 // Регистрация
 router.post("/register", async (req, res) => {
   try {

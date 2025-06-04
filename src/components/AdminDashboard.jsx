@@ -5,7 +5,6 @@ import {
   faPlusCircle,
   faHistory,
   faUserPlus,
-  faFile,
   faPrint,
 } from "@fortawesome/free-solid-svg-icons";
 import { registerUser } from "../api/api";
