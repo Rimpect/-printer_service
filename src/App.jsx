@@ -55,7 +55,7 @@ function App() {
 
       // Сохраняем токены
       localStorage.setItem("accessToken", data.tokens.accessToken);
-      localStorage.setItem("refreshToken", data.tokens.refreshToken);
+      // localStorage.setItem("refreshToken", data.tokens.refreshToken);
 
       setUser(data.user);
       setView(data.user.role);

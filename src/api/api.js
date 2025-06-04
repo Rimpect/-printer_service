@@ -48,19 +48,15 @@ const authFetch = async (url, options = {}) => {
 };
 // Обновление токена
 const refreshTokens = async () => {
-  const refreshToken = localStorage.getItem("refreshToken");
-  if (!refreshToken) {
-    console.error("Refresh токен отсутствует");
-    return null;
-  }
-
   try {
+    // Отправляем запрос на обновление без передачи refreshToken
+    // Сервер сам найдет его в БД по текущему accessToken
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
-      body: JSON.stringify({ refreshToken }),
     });
 
     if (!response.ok) {
@@ -69,16 +65,14 @@ const refreshTokens = async () => {
 
     const data = await response.json();
 
-    // Сохраняем новые токены
+    // Сохраняем новый accessToken
     localStorage.setItem("accessToken", data.accessToken);
-    localStorage.setItem("refreshToken", data.refreshToken);
 
     return data;
   } catch (error) {
     console.error("Ошибка при обновлении токенов:", error);
     // Очищаем хранилище при ошибке
     localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
     return null;
   }
 };
@@ -174,20 +168,18 @@ export const Login = async (login, password) => {
 };
 
 export const logout = async () => {
-  const refreshToken = localStorage.getItem("refreshToken");
-  if (refreshToken) {
-    try {
-      await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refreshToken }),
-      });
-    } catch (error) {
-      console.error("Ошибка при выходе:", error);
-    }
+  try {
+    await fetch(`${API_BASE_URL}/auth/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    });
+  } catch (error) {
+    console.error("Ошибка при выходе:", error);
   }
   localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
 };
 
 export const fetchCurrentUser = async () => {

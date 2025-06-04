@@ -80,15 +80,16 @@ router.post("/logout", async (req, res) => {
 // Обновление токенов
 router.post("/refresh", async (req, res) => {
   try {
-    const { refreshToken } = req.body;
-    if (!refreshToken) {
-      return res.status(400).json({ error: "Refresh token is required" });
+    const authHeader = req.headers["authorization"];
+    const oldAccessToken = authHeader && authHeader.split(" ")[1];
+
+    if (!oldAccessToken) {
+      return res.status(401).json({ error: "Access token required" });
     }
 
-    const tokens = await ServiceAuthService.refreshTokens(refreshToken);
+    const tokens = await ServiceAuthService.refreshTokens(oldAccessToken);
     res.json(tokens);
   } catch (error) {
-    console.error("Refresh token error:", error);
     res.status(401).json({ error: error.message });
   }
 });
