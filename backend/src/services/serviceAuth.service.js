@@ -54,62 +54,37 @@ class ServiceAuthService {
   }
 
   static async login(login, password) {
-
-
     // 1. Найти пользователя
     const { rows } = await query("SELECT * FROM users WHERE login = $1", [
       login,
     ]);
-
     if (rows.length === 0) {
-
       throw new Error("Неверные учетные данные");
     }
 
     const user = rows[0];
 
-
     // 2. Проверить пароль
     const isMatch = await bcrypt.compare(password, user.password);
-
-
     if (!isMatch) {
       throw new Error("Неверные учетные данные");
     }
 
-    // 3. Проверить существование пользователя в БД (доп. проверка)
-    const userExists = await query("SELECT id FROM users WHERE id = $1", [
-      user.id,
-    ]);
-    if (userExists.rows.length === 0) {
-      console.error(
-        `Критическая ошибка: пользователь ${user.id} не найден при проверке`
-      );
-      throw new Error("Ошибка системы аутентификации");
-    }
-
-    // 4. Генерация токенов
-
+    // 3. Генерация токенов
     const accessToken = jwt.sign(
       { id: user.id, login: user.login, role: user.role },
       process.env.JWT_ACCESS_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "1m" }
     );
 
     const refreshToken = crypto.randomBytes(40).toString("hex");
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 дней
 
-    // 5. Сохранение refresh token
-
-    try {
-      await query(
-        "INSERT INTO refresh_tokens (token, user_id, expires_at) VALUES ($1, $2, $3)",
-        [refreshToken, user.id, expiresAt]
-      );
-    } catch (err) {
-      console.error("Ошибка сохранения refresh токена:", err);
-      throw new Error("Ошибка создания сессии");
-    }
+    // 4. Сохранение refresh token
+    await query(
+      "INSERT INTO refresh_tokens (token, user_id, expires_at) VALUES ($1, $2, $3)",
+      [refreshToken, user.id, expiresAt]
+    );
 
     return {
       user: {
@@ -159,43 +134,42 @@ class ServiceAuthService {
     }
   }
   static async refreshTokens(refreshToken) {
-    // Проверяем refresh токен в БД
-    const tokenData = await query(
+    // 1. Проверить refresh токен в БД
+    const { rows } = await query(
       "SELECT * FROM refresh_tokens WHERE token = $1 AND expires_at > NOW()",
       [refreshToken]
     );
 
-    if (tokenData.rows.length === 0) {
-      throw new Error("Invalid refresh token");
+    if (rows.length === 0) {
+      throw new Error("Недействительный refresh токен");
     }
 
-    const tokenRecord = tokenData.rows[0];
+    const tokenRecord = rows[0];
 
-    // Получаем данные пользователя
-    const userData = await query("SELECT * FROM users  WHERE id = $1", [
+    // 2. Получить данные пользователя
+    const userData = await query("SELECT * FROM users WHERE id = $1", [
       tokenRecord.user_id,
     ]);
     if (userData.rows.length === 0) {
-      throw new Error("User not found");
+      throw new Error("Пользователь не найден");
     }
 
     const user = userData.rows[0];
 
-    // Генерация нового access токена
+    // 3. Генерация новых токенов
     const newAccessToken = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { id: user.id, login: user.login, role: user.role },
       process.env.JWT_ACCESS_SECRET,
       { expiresIn: "15m" }
     );
 
-    // Генерация нового refresh токена (ротация токенов)
     const newRefreshToken = crypto.randomBytes(40).toString("hex");
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 дней
+    const newExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 дней
 
-    // Обновляем refresh токен в БД
+    // 4. Обновить refresh токен в БД
     await query(
       "UPDATE refresh_tokens SET token = $1, expires_at = $2, updated_at = NOW() WHERE id = $3",
-      [newRefreshToken, expiresAt, tokenRecord.id]
+      [newRefreshToken, newExpiresAt, tokenRecord.id]
     );
 
     return {
