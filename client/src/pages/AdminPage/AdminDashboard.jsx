@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Modal } from "./Modal";
+import { Modal } from "../../components/Modal//Modal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlusCircle,
@@ -7,12 +7,12 @@ import {
   faUserPlus,
   faPrint,
 } from "@fortawesome/free-solid-svg-icons";
-import { registerUser } from "../api/api";
-import { AddUserForm } from "./AdminDashboard/AddUserForm";
+import { registerUser } from "../../api/api";
+import { AddUserForm } from "./AddUserForm";
 // import { GenerateReport } from "./AdminDashboard/GenerateReport";
-import { AddPrinter } from "./AdminDashboard/AddPrinter";
-import { NewRequest } from "./NewRequest";
-import { MyRequests } from "./MyRequests";
+import { AddPrinter } from "./AddPrinter";
+import { NewRequest } from "../UserPage/NewRequest";
+import { MyRequests } from "../UserPage/MyRequests";
 
 export function AdminDashboard({
   printers = [],
@@ -181,6 +181,3 @@ export function AdminDashboard({
     </div>
   );
 }
-
-
-

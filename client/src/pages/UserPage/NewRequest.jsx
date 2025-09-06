@@ -6,8 +6,8 @@ import {
   faExclamationTriangle,
   faPaperPlane,
 } from "@fortawesome/free-solid-svg-icons";
-import { fetchPrinters, createServiceRequest } from "../api/api";
-import { Modal } from "./Modal";
+import { fetchPrinters, createServiceRequest } from "../../api/api";
+import { Modal } from "../../components/Modal/Modal";
 
 export function NewRequest() {
   const [printers, setPrinters] = useState([]);

@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTools, faListAlt, faInbox } from "@fortawesome/free-solid-svg-icons";
-import { RepairRequest } from "./ServiceDashboard/RepairRequest";
-import { UsersRequest } from "./ServiceDashboard/UsersRequest";
+import { RepairRequest } from "./RepairRequest";
+import { UsersRequest } from "./UsersRequest";
 import {
   getOpenRequests,
   closeServiceRequest,
@@ -10,8 +10,8 @@ import {
   updateServiceCenter,
   fetchCurrentUser,
   getAssignedRequests,
-} from "../api/api";
-import { Modal } from "./Modal";
+} from "../../api/api";
+import { Modal } from "../../components/Modal/Modal";
 
 export function ServiceDashboard() {
   const [activeTab, setActiveTab] = useState("openRequests");

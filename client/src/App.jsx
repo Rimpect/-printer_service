@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { Header } from "./components/Header";
-import { Footer } from "./components/Footer";
-import { LoginPage } from "./components/LoginPage";
-import { UserDashboard } from "./components/UserDashboard";
-import { ServiceDashboard } from "./components/ServiceDashboard";
-import { AdminDashboard } from "./components/AdminDashboard";
-import { ErrorModal } from "./components/ErrorModal";
+import { Header } from "./components/Header/Header";
+import { Footer } from "./components/Footer/Footer";
+import { LoginPage } from "./pages/LoginPage/LoginPage";
+import { UserDashboard } from "./pages/UserPage/UserDashboard";
+import { ServiceDashboard } from "./pages/ServicePage/ServiceDashboard";
+import { AdminDashboard } from "./pages/AdminPage/AdminDashboard";
+import { ErrorModal } from "./components/Modal/ErrorModal";
 import {
   Login,
   logout,

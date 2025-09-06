@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getUserRequests } from "../api/api";
+import { getUserRequests } from "../../api/api";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faListUl,
@@ -118,10 +118,15 @@ export function MyRequests() {
                     <FontAwesomeIcon icon={faPrint} className="mr-1" /> Принтер
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <FontAwesomeIcon icon={faCalendarAlt} className="mr-1" /> Дата
+                    <FontAwesomeIcon icon={faCalendarAlt} className="mr-1" />{" "}
+                    Дата
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <FontAwesomeIcon icon={faExclamationCircle} className="mr-1" /> Проблема
+                    <FontAwesomeIcon
+                      icon={faExclamationCircle}
+                      className="mr-1"
+                    />{" "}
+                    Проблема
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Статус
@@ -149,7 +154,10 @@ export function MyRequests() {
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${status.class}`}
                         >
-                          <FontAwesomeIcon icon={status.icon} className="mr-1" />
+                          <FontAwesomeIcon
+                            icon={status.icon}
+                            className="mr-1"
+                          />
                           {status.text}
                         </span>
                       </td>
@@ -165,10 +173,14 @@ export function MyRequests() {
             {requests.map((request, index) => {
               const status = getStatusDisplay(request.status);
               return (
-                <div key={request.id} className="border rounded-lg p-4 shadow-sm">
+                <div
+                  key={request.id}
+                  className="border rounded-lg p-4 shadow-sm"
+                >
                   <div className="flex justify-between items-start mb-2">
                     <div className="font-medium text-gray-900">
-                      #{index + 1} {request.printer_model || "Неизвестная модель"}
+                      #{index + 1}{" "}
+                      {request.printer_model || "Неизвестная модель"}
                     </div>
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium ${status.class}`}
@@ -177,16 +189,21 @@ export function MyRequests() {
                       {status.text}
                     </span>
                   </div>
-                  
+
                   <div className="text-sm text-gray-500 mb-2">
                     <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
                     {formatDate(request.created_at)}
                   </div>
-                  
+
                   <div className="text-sm">
                     <div className="flex items-start mb-1">
-                      <FontAwesomeIcon icon={faExclamationCircle} className="mr-2 mt-0.5 flex-shrink-0" />
-                      <span>{request.problem_description || "Нет описания"}</span>
+                      <FontAwesomeIcon
+                        icon={faExclamationCircle}
+                        className="mr-2 mt-0.5 flex-shrink-0"
+                      />
+                      <span>
+                        {request.problem_description || "Нет описания"}
+                      </span>
                     </div>
                   </div>
                 </div>
